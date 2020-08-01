@@ -1,0 +1,268 @@
+TdlBuild.data_c_intc_M2S_force_robin(__dir__) do 
+    parameter.NUM   8
+    port.data_c.slaver[param.NUM]       - 's00'
+    port.data_c.master                  - 'm00'
+
+    logic[param.NUM.clog2]  - 'robin_index'
+    logic[param.NUM.clog2]  - 'next_robin_index'
+    logic - 'from_up_vld'
+    logic - 'to_up_ready'
+    logic[m00.DSIZE]     - 'from_up_data'
+
+    Assign do 
+        from_up_vld     <= s00.valid[robin_index]
+        to_up_ready     <= s00.ready[robin_index]
+        from_up_data    <= s00.data[robin_index]
+    end
+
+    ## define clock 
+
+    logic.clock(m00.FreqM)  - 'clock'
+    logic.reset('low')      - 'rst_n'
+
+    Assign do 
+        clock   <= m00.clock 
+        rst_n   <= m00.rst_n
+    end
+
+    ## robin 
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            robin_index <= 0.A 
+        end
+        ELSE do 
+            IF from_up_vld & to_up_ready do 
+                IF robin_index >= (param.NUM-1) do 
+                    robin_index <= 0.A 
+                end 
+                ELSE do 
+                    robin_index <= robin_index + 1.b1 
+                end 
+            end 
+            ELSE do 
+                robin_index <= robin_index
+            end
+        end
+    end
+
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            next_robin_index <= 0.A + 1.b1
+        end
+        ELSE do 
+            IF from_up_vld & to_up_ready do 
+                IF next_robin_index >= (param.NUM-1) do 
+                    next_robin_index <= 0.A 
+                end 
+                ELSE do 
+                    next_robin_index <= next_robin_index + 1.b1 
+                end 
+            end 
+            ELSE do 
+                next_robin_index <= next_robin_index
+            end
+        end
+    end
+
+    ## STATUS 
+    enum('IDLE','EM_CN_EM_BUF','VD_CN_EM_BUF','VD_CN_ST_BUF','VD_CN_CL_BUF') - 'mainS'
+
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            mainS.C     <= mainS.IDLE
+        end
+        ELSE do 
+            mainS.C     <= mainS.N 
+        end
+    end
+
+    AlwaysComb do 
+        CASE mainS.C do 
+            WHEN mainS.IDLE do 
+                mainS.N     <= mainS.EM_CN_EM_BUF
+            end
+            WHEN mainS.EM_CN_EM_BUF do 
+                IF from_up_vld & to_up_ready do 
+                    mainS.N     <= mainS.VD_CN_EM_BUF
+                end
+                ELSE do 
+                    mainS.N     <= mainS.EM_CN_EM_BUF
+                end
+            end
+            WHEN mainS.VD_CN_EM_BUF do 
+                IF from_up_vld & to_up_ready do 
+                    IF m00.vld_rdy do 
+                        mainS.N     <= mainS.VD_CN_EM_BUF
+                    end 
+                    ELSE do 
+                        mainS.N     <= mainS.VD_CN_ST_BUF
+                    end
+                end 
+                ELSE do 
+                    IF m00.vld_rdy do 
+                        mainS.N     <= mainS.EM_CN_EM_BUF
+                    end 
+                    ELSE do 
+                        mainS.N     <= mainS.VD_CN_EM_BUF
+                    end 
+                end
+            end
+            WHEN mainS.VD_CN_ST_BUF do 
+                IF m00.vld_rdy do 
+                    mainS.N     <= mainS.VD_CN_EM_BUF
+                end 
+                ELSE do 
+                    mainS.N     <= mainS.VD_CN_ST_BUF
+                end
+            end
+            DEFAULT do 
+                mainS.N     <= mainS.IDLE 
+            end 
+        end
+    end
+
+    ## 
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            m00.valid   <= 1.b0 
+        end
+        ELSE do 
+            CASE mainS.N do 
+                WHEN mainS.VD_CN_EM_BUF,mainS.VD_CN_ST_BUF do 
+                    m00.valid   <= 1.b1 
+                end 
+                DEFAULT do 
+                    m00.valid   <= 1.b0 
+                end 
+            end
+        end 
+    end
+
+    logic[m00.DSIZE]    - 'buffer_data'
+    logic               - 'buffer_vld'
+
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            m00.data    <= 0.A 
+        end 
+        ELSE do 
+            CASE mainS.N do 
+                WHEN mainS.VD_CN_EM_BUF do 
+                    IF buffer_vld do 
+                        m00.data    <= buffer_data
+                    end
+                    ELSIF from_up_vld & to_up_ready do 
+                        m00.data    <= from_up_data
+                    end
+                    ELSE do 
+                        m00.data    <= m00.data 
+                    end 
+                end 
+                WHEN mainS.VD_CN_ST_BUF do 
+                    IF m00.vld_rdy do 
+                        m00.data    <= buffer_data
+                    end 
+                    ELSE do 
+                        m00.data    <= m00.data 
+                    end
+                end 
+            end
+        end
+    end
+
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            buffer_data <= 0.A 
+        end 
+        ELSE do 
+            CASE mainS.N do 
+                WHEN mainS.VD_CN_ST_BUF do 
+                    IF from_up_vld & to_up_ready do 
+                        buffer_data <= from_up_data
+                    end 
+                    ELSE do 
+                        buffer_data <= buffer_data
+                    end 
+                end
+                DEFAULT do 
+                    buffer_data <= 0.A 
+                end 
+            end 
+        end 
+    end
+
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            buffer_vld <= 0.A 
+        end 
+        ELSE do 
+            CASE mainS.N do 
+                WHEN mainS.VD_CN_ST_BUF do 
+                    IF from_up_vld & to_up_ready do 
+                        buffer_vld <= 1.b1
+                    end 
+                    ELSE do 
+                        buffer_vld <= buffer_vld
+                    end 
+                end
+                DEFAULT do 
+                    buffer_vld <= 1.b0
+                end 
+            end 
+        end 
+    end
+
+    logic - 'main_ready'
+
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            main_ready  <= 1.b0 
+        end 
+        ELSE do 
+            CASE mainS.N do 
+                WHEN mainS.EM_CN_EM_BUF,mainS.VD_CN_EM_BUF do 
+                    main_ready  <= 1.b1 
+                end
+                WHEN mainS.VD_CN_ST_BUF do 
+                    IF m00.vld_rdy do 
+                        main_ready  <= 1.b1
+                    end 
+                    ELSE do 
+                        main_ready  <= 1.b0 
+                    end
+                end
+                DEFAULT do 
+                    main_ready  <= 1.b0 
+                end 
+            end
+        end
+    end
+
+    logic[param.NUM]   - 'to_up_ready_array'
+
+    Always(posedge: clock,negedge: rst_n) do 
+        IF ~rst_n do 
+            to_up_ready_array  <= 0.A
+        end 
+        ELSE do
+            IF mainS.C == mainS.IDLE do 
+                to_up_ready_array  <= 0.A       
+                to_up_ready_array[robin_index]   <= 1.b1
+            end
+            ELSIF from_up_vld & to_up_ready do
+                to_up_ready_array  <= 0.A 
+                to_up_ready_array[next_robin_index]   <= 1.b1 
+            end
+            ELSE do 
+                to_up_ready_array   <= to_up_ready_array
+            end
+        end 
+    end
+
+    generate(param.NUM) do |kk|
+        Assign do 
+            s00.ready[kk]  <= to_up_ready_array[kk] & main_ready
+        end
+    end
+
+end

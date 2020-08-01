@@ -1,0 +1,61 @@
+/**********************************************
+_______________________________________ 
+___________    Cook Darwin   __________    
+_______________________________________
+descript:
+author : Cook.Darwin
+Version: VERA.0.0
+creaded: 2017/5/23 
+madified:
+***********************************************/
+`timescale 1ns/1ps
+module len_convert #(
+    parameter ISIZE = 24
+    parameter OSIZE = 32
+)(
+    input                   clock,
+    input                   rst_n,
+    input                   invalid,
+    output logic            inready,
+    input [31:0]            inlen,      // 0->1   minus 1
+    output logic            outvalid,
+    input                   outready,
+    output logic [31:0]     outlen
+);
+
+import DataInterfacePkg::*;
+
+(* dont_touch = "true" *)
+logic [31:0]    Dlen;
+logic           Dlen_vld;
+
+always@(posedge clock,negedge rst_n)
+    if(~rst_n)  Dlen <= '0;
+    else begin
+        if(invalid && inready)
+                Dlen  <= (inlen*ISIZE)/OSIZE;
+        else    Dlen  <= Dlen;
+    end
+
+always@(posedge clock,negedge rst_n)
+    if(~rst_n)  Dlen_vld <= '0;
+    else begin
+        Dlen_vld    <= pipe_valid_func(invalid,outready,Dlen_vld);
+    end
+
+logic [31:0]    Rlen;
+logic           Rlen_vld;
+
+always@(posedge clock,negedge rst_n)
+    if(~rst_n)  Rlen <= '0;
+    else begin
+        if(Dlen_vld && outready)
+                Rlen  <= (inlen*ISIZE) - OSIZE*Dlen;
+        else    Rlen  <= Rlen;
+    end
+
+always@(posedge clock,negedge rst_n)
+    if(~rst_n)  Rlen_vld <= '0;
+    else begin
+        Rlen_vld    <= pipe_valid_func(Dlen_vld,outready,Rlen_vld);
+    end

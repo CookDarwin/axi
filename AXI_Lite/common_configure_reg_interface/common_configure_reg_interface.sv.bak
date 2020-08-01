@@ -1,0 +1,109 @@
+/**********************************************
+_______________________________________ 
+___________    Cook Darwin   __________    
+_______________________________________
+descript: 通用配置寄存器接口 用于配置模块寄存器
+author : Cook.Darwin
+Version: VERA.0.1 : 2017/11/24 
+creaded: 2017/1/9 
+madified:
+***********************************************/
+interface  common_configure_reg_interface #(
+    parameter ASIZE = 8,
+    parameter DSIZE = 32
+)();
+
+// logic [ASIZE-1:0]   bus_addr;
+logic [DSIZE-1:0]   wdata;
+logic [DSIZE-1:0]   rdata;
+logic [ASIZE-1:0]   addr;
+logic [DSIZE-1:0]   default_value;
+logic               rst;
+
+logic               interrupt_enable;
+logic               interrupt_trigger;
+
+assign  interrupt_enable= 1'b0;
+assign  interrupt_trigger =1'b0;
+
+
+modport master (
+output  wdata,
+input   rdata,
+input   addr,
+input   default_value,
+input   rst,
+input   interrupt_enable,
+input   interrupt_trigger
+// import function  logic[DSIZE-1:0] SET_REG(
+//     input int                       faddr,
+//     // output [cfg_inf.DSIZE-1:0]      fwdata,
+//     input int                       fdefault_value,
+//     input int                       frdata,
+//     input int                       frst)
+);
+
+modport slaver (
+input   wdata,
+output  rdata,
+output  addr,
+output  default_value,
+output  rst,
+input   interrupt_enable,
+input   interrupt_trigger
+);
+
+
+endinterface:common_configure_reg_interface
+
+module CFG_REG (
+    common_configure_reg_interface.slaver  cfg_inf,
+    input int                       addr,
+    output int                      wdata,
+    input int                       default_value,
+    input int                       rdata,
+    input int                       rst
+);
+
+assign cfg_inf.addr = addr[cfg_inf.ASIZE-1:0];
+assign wdata        = cfg_inf.wdata;
+assign cfg_inf.default_value  = default_value[cfg_inf.DSIZE-1:0];
+assign cfg_inf.rdata = rdata[cfg_inf.DSIZE-1:0];
+assign cfg_inf.rst   = rst[0];
+
+endmodule:CFG_REG
+
+module general_reg (
+    common_configure_reg_interface.slaver  cfg_inf,
+    input int                       addr,
+    output int                      data,
+    input int                       default_value
+);
+
+CFG_REG  CFG_REG_INST(
+/*    common_configure_reg_interface.slaver */ .cfg_inf (cfg_inf    ),
+/*    input int                     */  .addr           (addr       ),
+/*    output [cfg_inf.DSIZE-1:0]    */  .wdata          (data       ),
+/*    input int                     */  .default_value  (default_value),
+/*    input int                     */  .rdata          (data       ),
+/*    input int                     */  .rst            (0          )
+);
+
+endmodule:general_reg
+
+module general_only_read_reg (
+    common_configure_reg_interface.slaver  cfg_inf,
+    input int                       addr,
+    input int                       rdata
+);
+
+CFG_REG  CFG_REG_INST(
+/*    common_configure_reg_interface.slaver */ .cfg_inf (cfg_inf    ),
+/*    input int                     */  .addr           (addr       ),
+/*    output nit                    */  .wdata          (           ),
+/*    input int                     */  .default_value  (0          ),
+/*    input int                     */  .rdata          (rdata      ),
+/*    input int                     */  .rst            (0          )
+);
+
+endmodule:general_only_read_reg

@@ -1,0 +1,251 @@
+/**********************************************
+_______________________________________ 
+___________    Cook Darwin   __________    
+_______________________________________
+descript:
+author : Cook.Darwin
+Version: VERA.0.0
+creaded: 2017/3/1 
+madified:
+***********************************************/
+`timescale 1ns/1ps
+module long_axi4_to_wide_axi4 #(
+    parameter real ADDR_STEP = 1,
+    parameter MASTER_IDSIZE    = 1,
+    parameter MASTER_ASIZE     = 32,
+    parameter MASTER_LSIZE     = 1,
+    parameter MASTER_DSIZE     = 32,
+    parameter SLAVER_IDSIZE    = 1,
+    parameter SLAVER_ASIZE     = 32,
+    parameter SLAVER_LSIZE     = 1,
+    parameter SLAVER_DSIZE     = 32
+)(
+    input                       master_axi_aclk     ,
+    input                       master_axi_resetn   ,
+    output [MASTER_IDSIZE-1:0]  master_axi_awid     ,
+    output [MASTER_ASIZE-1:0]   master_axi_awaddr   ,
+    output [MASTER_LSIZE-1:0]   master_axi_awlen    ,
+    output [2:0]                master_axi_awsize   ,
+    output [1:0]                master_axi_awburst  ,
+    output [0:0]                master_axi_awlock   ,
+    output [3:0]                master_axi_awcache  ,
+    output [2:0]                master_axi_awprot   ,
+    output [3:0]                master_axi_awqos    ,
+    output                      master_axi_awvalid  ,
+    input                       master_axi_awready  ,
+    output [MASTER_DSIZE-1:0]   master_axi_wdata    ,
+    output [MASTER_DSIZE/8-1:0] master_axi_wstrb    ,
+    output                      master_axi_wlast    ,
+    output                      master_axi_wvalid   ,
+    input                       master_axi_wready   ,
+    output                      master_axi_bready   ,
+    input [MASTER_IDSIZE-1:0]   master_axi_bid      ,
+    input [1:0]                 master_axi_bresp    ,
+    input                       master_axi_bvalid   ,
+    output [MASTER_IDSIZE-1:0]  master_axi_arid     ,
+    output [MASTER_ASIZE-1:0]   master_axi_araddr   ,
+    output [MASTER_LSIZE-1:0]   master_axi_arlen    ,
+    output [2:0]                master_axi_arsize   ,
+    output [1:0]                master_axi_arburst  ,
+    output [0:0]                master_axi_arlock   ,
+    output [3:0]                master_axi_arcache  ,
+    output [2:0]                master_axi_arprot   ,
+    output [3:0]                master_axi_arqos    ,
+    output                      master_axi_arvalid  ,
+    input                       master_axi_arready  ,
+    output                      master_axi_rready   ,
+    input [MASTER_IDSIZE-1:0]   master_axi_rid      ,
+    input [MASTER_DSIZE-1:0]    master_axi_rdata    ,
+    input [1:0]                 master_axi_rresp    ,
+    input                       master_axi_rlast    ,
+    input                       master_axi_rvalid   ,
+    // input [MASTER_LSIZE-1:0]    master_axi_wcnt     ,
+    // input [MASTER_LSIZE-1:0]    master_axi_rcnt     ,
+    input                       slaver_axi_aclk     ,
+    input                       slaver_axi_resetn   ,
+    input [SLAVER_IDSIZE-1:0]   slaver_axi_awid     ,
+    input [SLAVER_ASIZE-1:0]    slaver_axi_awaddr   ,
+    input [SLAVER_LSIZE-1:0]    slaver_axi_awlen    ,
+    input   [2:0]               slaver_axi_awsize   ,
+    input   [1:0]               slaver_axi_awburst  ,
+    input   [0:0]               slaver_axi_awlock   ,
+    input   [3:0]               slaver_axi_awcache  ,
+    input   [2:0]               slaver_axi_awprot   ,
+    input   [3:0]               slaver_axi_awqos    ,
+    input                       slaver_axi_awvalid  ,
+    output                      slaver_axi_awready  ,
+    input [SLAVER_DSIZE-1:0]    slaver_axi_wdata    ,
+    input [SLAVER_DSIZE/8-1:0]  slaver_axi_wstrb    ,
+    input                       slaver_axi_wlast    ,
+    input                       slaver_axi_wvalid   ,
+    output                      slaver_axi_wready   ,
+    input                       slaver_axi_bready   ,
+    output [SLAVER_IDSIZE-1:0]  slaver_axi_bid      ,
+    output [1:0]                slaver_axi_bresp    ,
+    output                      slaver_axi_bvalid   ,
+    input [SLAVER_IDSIZE-1:0]   slaver_axi_arid     ,
+    input [SLAVER_ASIZE-1:0]    slaver_axi_araddr   ,
+    input [SLAVER_LSIZE-1:0]    slaver_axi_arlen    ,
+    input   [2:0]               slaver_axi_arsize   ,
+    input   [1:0]               slaver_axi_arburst  ,
+    input   [0:0]               slaver_axi_arlock   ,
+    input   [3:0]               slaver_axi_arcache  ,
+    input   [2:0]               slaver_axi_arprot   ,
+    input   [3:0]               slaver_axi_arqos    ,
+    input                       slaver_axi_arvalid  ,
+    output                      slaver_axi_arready  ,
+    input                       slaver_axi_rready   ,
+    output [SLAVER_IDSIZE-1:0]  slaver_axi_rid      ,
+    output [SLAVER_DSIZE-1:0]   slaver_axi_rdata    ,
+    output [1:0]                slaver_axi_rresp    ,
+    output                      slaver_axi_rlast    ,
+    output                      slaver_axi_rvalid
+    // input  [SLAVER_LSIZE-1:0]   slaver_axi_wcnt     ,
+    // input  [SLAVER_LSIZE-1:0]   slaver_axi_rcnt
+);
+
+axi_inf #(
+    .IDSIZE    (MASTER_IDSIZE          ),
+    .ASIZE     (MASTER_ASIZE           ),
+    .LSIZE     (MASTER_LSIZE           ),
+    .DSIZE     (MASTER_DSIZE           )
+)master(
+    .axi_aclk      (master_axi_aclk     ),
+    .axi_aresetn    (master_axi_resetn   )
+);
+
+axi_inf #(
+    .IDSIZE    (SLAVER_IDSIZE          ),
+    .ASIZE     (SLAVER_ASIZE           ),
+    .LSIZE     (SLAVER_LSIZE           ),
+    .DSIZE     (SLAVER_DSIZE           )
+)slaver(
+    .axi_aclk      (slaver_axi_aclk     ),
+    .axi_aresetn    (slaver_axi_resetn   )
+);
+
+assign       master_axi_awid     = master.axi_awid    ;
+assign       master_axi_awaddr   = master.axi_awaddr  ;
+assign       master_axi_awlen    = master.axi_awlen   ;
+assign       master_axi_awsize   = master.axi_awsize  ;
+assign       master_axi_awburst  = master.axi_awburst ;
+assign       master_axi_awlock   = master.axi_awlock  ;
+assign       master_axi_awcache  = master.axi_awcache ;
+assign       master_axi_awprot   = master.axi_awprot  ;
+assign       master_axi_awqos    = master.axi_awqos   ;
+assign       master_axi_awvalid  = master.axi_awvalid ;
+assign       master.axi_awready  = master_axi_awready ;
+assign       master_axi_wdata    = master.axi_wdata  ;
+assign       master_axi_wstrb    = master.axi_wstrb  ;
+assign       master_axi_wlast    = master.axi_wlast  ;
+assign       master_axi_wvalid   = master.axi_wvalid ;
+assign       master.axi_wready   = master_axi_wready ;
+assign       master_axi_bready   = master.axi_bready ;
+assign       master.axi_bid      = master_axi_bid    ;
+assign       master.axi_bresp    = master_axi_bresp  ;
+assign       master.axi_bvalid   = master_axi_bvalid ;
+assign       master_axi_arid     = master.axi_arid    ;
+assign       master_axi_araddr   = master.axi_araddr  ;
+assign       master_axi_arlen    = master.axi_arlen   ;
+assign       master_axi_arsize   = master.axi_arsize  ;
+assign       master_axi_arburst  = master.axi_arburst ;
+assign       master_axi_arlock   = master.axi_arlock  ;
+assign       master_axi_arcache  = master.axi_arcache ;
+assign       master_axi_arprot   = master.axi_arprot  ;
+assign       master_axi_arqos    = master.axi_arqos   ;
+assign       master_axi_arvalid  = master.axi_arvalid ;
+assign       master.axi_arready  = master_axi_arready ;
+assign       master_axi_rready   = master.axi_rready  ;
+assign       master.axi_rid      = master_axi_rid     ;
+assign       master.axi_rdata    = master_axi_rdata   ;
+assign       master.axi_rresp    = master_axi_rresp   ;
+assign       master.axi_rlast    = master_axi_rlast   ;
+assign       master.axi_rvalid   = master_axi_rvalid  ;
+// assign       master.axi_wcnt     = master_axi_wcnt    ;
+// assign       master.axi_rcnt     = master_axi_rcnt    ;
+
+assign       slaver.axi_awid     = slaver_axi_awid    ;
+assign       slaver.axi_awaddr   = slaver_axi_awaddr  ;
+assign       slaver.axi_awlen    = slaver_axi_awlen   ;
+assign       slaver.axi_awsize   = slaver_axi_awsize  ;
+assign       slaver.axi_awburst  = slaver_axi_awburst ;
+assign       slaver.axi_awlock   = slaver_axi_awlock  ;
+assign       slaver.axi_awcache  = slaver_axi_awcache ;
+assign       slaver.axi_awprot   = slaver_axi_awprot  ;
+assign       slaver.axi_awqos    = slaver_axi_awqos   ;
+assign       slaver.axi_awvalid  = slaver_axi_awvalid ;
+assign       slaver_axi_awready  = slaver.axi_awready ;
+assign       slaver.axi_wdata    = slaver_axi_wdata   ;
+assign       slaver.axi_wstrb    = slaver_axi_wstrb   ;
+assign       slaver.axi_wlast    = slaver_axi_wlast   ;
+assign       slaver.axi_wvalid   = slaver_axi_wvalid  ;
+assign       slaver_axi_wready   = slaver.axi_wready  ;
+assign       slaver.axi_bready   = slaver_axi_bready  ;
+assign       slaver_axi_bid      = slaver.axi_bid     ;
+assign       slaver_axi_bresp    = slaver.axi_bresp   ;
+assign       slaver_axi_bvalid   = slaver.axi_bvalid  ;
+assign       slaver.axi_arid     = slaver_axi_arid    ;
+assign       slaver.axi_araddr   = slaver_axi_araddr  ;
+assign       slaver.axi_arlen    = slaver_axi_arlen   ;
+assign       slaver.axi_arsize   = slaver_axi_arsize  ;
+assign       slaver.axi_arburst  = slaver_axi_arburst ;
+assign       slaver.axi_arlock   = slaver_axi_arlock  ;
+assign       slaver.axi_arcache  = slaver_axi_arcache ;
+assign       slaver.axi_arprot   = slaver_axi_arprot  ;
+assign       slaver.axi_arqos    = slaver_axi_arqos   ;
+assign       slaver.axi_arvalid  = slaver_axi_arvalid ;
+assign       slaver_axi_arready  = slaver.axi_arready ;
+assign       slaver.axi_rready   = slaver_axi_rready  ;
+assign       slaver_axi_rid      = slaver.axi_rid     ;
+assign       slaver_axi_rdata    = slaver.axi_rdata   ;
+assign       slaver_axi_rresp    = slaver.axi_rresp   ;
+assign       slaver_axi_rlast    = slaver.axi_rlast   ;
+assign       slaver_axi_rvalid   = slaver.axi_rvalid  ;
+// assign       slaver.axi_wcnt     = slaver_axi_wcnt    ;
+// assign       slaver.axi_rcnt     = slaver_axi_rcnt    ;
+
+
+localparam PSIZE    = MASTER_DSIZE*128/SLAVER_DSIZE;
+
+axi_inf #(
+    .IDSIZE    (SLAVER_IDSIZE          ),
+    .ASIZE     (SLAVER_ASIZE           ),
+    .LSIZE     (SLAVER_LSIZE           ),
+    .DSIZE     (SLAVER_DSIZE           )
+)axi_inf_pout(
+    .axi_aclk      (slaver.axi_aclk     ),
+    .axi_aresetn    (slaver.axi_aresetn   )
+);
+
+axi4_partition_OD #(
+    .PSIZE          (PSIZE      )
+    // .ADDR_STEP      (ADDR_STEP  )
+)axi4_partition_inst(
+/*    axi_inf.slaver */ .slaver     (slaver          ),
+/*    axi_inf.master */ .master     (axi_inf_pout    )
+);
+
+axi_inf #(
+    .IDSIZE    (master.IDSIZE          ),
+    .ASIZE     (master.ASIZE           ),
+    .LSIZE     (master.LSIZE           ),
+    .DSIZE     (master.DSIZE           )
+)axi_inf_cdout(
+    .axi_aclk      (slaver.axi_aclk     ),
+    .axi_aresetn    (slaver.axi_aresetn   )
+);
+
+axi4_data_convert axi4_data_convert_inst(
+/*    axi_inf.slaver */ .axi_in     (axi_inf_pout   ),
+/*    axi_inf.master */ .axi_out    (axi_inf_cdout  )
+);
+
+
+axi4_packet_fifo #(             //512
+    .DEPTH      (4      )
+)axi4_packet_fifo_inst(
+/*    axi_inf.slaver */ .axi_in     (axi_inf_cdout  ),
+/*    axi_inf.master */ .axi_out    (master        )
+);
+
+endmodule

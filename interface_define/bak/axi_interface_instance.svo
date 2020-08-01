@@ -1,0 +1,13 @@
+
+
+axi_stream_inf #(.DSIZE( ))master_inf(.aclk( ),.aresetn( ),.aclken(1'b1));
+
+axi_inf #(
+    .IDSIZE    (1           ),
+    .ASIZE     (8          ),
+    .LSIZE     (8           ),
+    .DSIZE     (8           )
+)axi_inf_master(
+    .axi_aclk      (wr_clk),
+    .axi_aresetn    (wrst_n)
+);

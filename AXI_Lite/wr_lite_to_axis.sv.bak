@@ -1,0 +1,141 @@
+/**********************************************
+_______________________________________ 
+___________    Cook Darwin   __________    
+_______________________________________
+descript:
+author : Cook.Darwin
+Version: VERA.0.1
+creaded: 2017/6/16 
+madified:
+***********************************************/
+`timescale 1ns/1ps
+`include "E:/work/AXI/macro/system_macro.sv"
+module wr_lite_to_axis(
+    axi_lite_inf.slaver                       axil,
+    axi_stream_inf.master                     axis
+);
+
+assign axil.axi_arready = axil.axi_arvalid;
+assign axil.axi_rvalid  = axil.axi_rready  ;
+
+import SystemPkg::*;
+
+initial 
+    assert(axis.DSIZE == axil.DSIZE+axil.ASIZE)
+    else begin 
+        $error("axis.DSIZE == axil.DSIZE+axil.ASIZE");
+        $stop;
+    end 
+end
+
+logic       clock,rst_n;
+
+assign  clock   = axis.aclk;
+assign  rst_n   = axis.aresetn;
+
+logic                   aux_fifo_empty;
+logic                   aux_fifo_full ;
+logic [axil.ASIZE-1:0]  aux_fifo_rd_data;
+logic                   aux_fifo_rd;
+
+logic                   data_fifo_empty;
+logic                   data_fifo_full ;
+logic [axil.DSIZE-1:0]  data_fifo_rd_data;
+logic                   data_fifo_rd;
+
+enum {GET_ADDR,GET_DATA,RESP}  nstate,cstate;
+
+always@(posedge clock,negedge rst_n)
+    if(~rst_n)  cstate  <= GET_ADDR;
+    else        cstate  <= nstate;
+
+always_comb begin
+    case(cstate)
+    GET_ADDR:
+        if(axil.axi_awvalid && axil.axi_awready)
+                nstate  = GET_DATA;
+        else    nstate  = GET_ADDR;
+    GET_DATA:
+        if(axil.axi_wvalid && axil.axi_wready)
+                nstate  = RESP;
+        else    nstate  = GET_DATA;
+    RESP:
+        if(axil.axi_bvalid && axil.axi_bready)
+                nstate  = GET_ADDR;
+        else    nstate  = RESP;
+    default:    nstate  = GET_ADDR;
+    endcase
+end
+
+logic   enable_aux;
+
+always@(posedge clock,negedge rst_n)
+    if(~rst_n)      enable_aux<= 1'b0;
+    else
+        case(nstate)
+        GET_ADDR:   enable_aux    <= 1'b1;
+        default:    enable_aux    <= 1'b0;
+        endcase
+
+logic   enable_data;
+
+always@(posedge clock,negedge rst_n)
+    if(~rst_n)  enable_data    <= 1'b0;
+    else
+        case(nstate)
+        GET_DATA:   enable_data    <= 1'b1;
+        default:    enable_data    <= 1'b0;
+        endcase
+
+always@(posedge clock,negedge rst_n)
+    if(~rst_n)  axil.axi_bvalid    <= 1'b0;
+    else
+        case(nstate)
+        RESP:       axil.axi_bvalid    <= 1'b1;
+        default:    axil.axi_bvalid    <= 1'b0;
+        endcase
+
+common_fifo #(
+    .DEPTH      (4  ),
+    .DSIZE      (axil.ASIZE  )
+)common_fifo_aux_inst(
+/*  input                    */   .clock    (clock              ),
+/*  input                    */   .rst_n    (rst_n              ),
+/*  input [DSIZE-1:0]        */   .wdata    (axil.axi_awaddr    ),
+/*  input                    */   .wr_en    ((enable_aux && axil.axi_awvalid && axil.axi_awready)),
+/*  output logic[DSIZE-1:0]  */   .rdata    (aux_fifo_rd_data   ),
+/*  input                    */   .rd_en    (aux_fifo_rd        ),
+/*  output logic[CSIZE-1:0]  */   .count    (),
+/*  output logic             */   .empty    (aux_fifo_empty     ),
+/*  output logic             */   .full     (aux_fifo_full      )
+);
+
+assign axil.axi_awready = !aux_fifo_full && enable_aux;
+
+logic   cf_last;
+
+common_fifo #(
+    .DEPTH      (4  ),
+    .DSIZE      (axil.DSIZE+1  )
+)common_fifo_data_inst(
+/*  input                    */   .clock    (clock              ),
+/*  input                    */   .rst_n    (rst_n              ),
+/*  input [DSIZE-1:0]        */   .wdata    ({!axil.axi_awlock,axil.axi_wdata}     ),
+/*  input                    */   .wr_en    ((enable_data && axil.axi_wvalid && axil.axi_wready)),
+/*  output logic[DSIZE-1:0]  */   .rdata    ({cf_last,data_fifo_rd_data}  ),
+/*  input                    */   .rd_en    (data_fifo_rd       ),
+/*  output logic[CSIZE-1:0]  */   .count    (),
+/*  output logic             */   .empty    (data_fifo_empty     ),
+/*  output logic             */   .full     (data_fifo_full      )
+);
+
+assign  axil.axi_wready = !data_fifo_full && enable_data;
+
+assign  axis.axis_tvalid    = !data_fifo_empty;
+assign  axis.axis_tdata     = {aux_fifo_rd_data,data_fifo_rd_data};
+assign  axis.axis_tlast     = cf_last;
+
+assign  aux_fifo_rd         = axis.axis_tready && !data_fifo_empty;
+assign  data_fifo_rd        = axis.axis_tready && !data_fifo_empty;
+
+endmodule

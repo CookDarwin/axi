@@ -1,0 +1,123 @@
+/**********************************************
+_______________________________________ 
+___________    Cook Darwin   __________    
+_______________________________________
+descript:
+author : Cook.Darwin
+Version: VERB.0.0 2017/9/25 
+    use fifo cache
+creaded: 2017/3/1 
+madified:
+***********************************************/
+`timescale 1ns/1ps
+module axi_stream_to_axi4_wr_verb (
+    input [31:0]                addr,
+    axi_stream_inf.slaver       axis_in,
+    axi_inf.master_wr           axi_wr_inf
+);
+
+initial begin
+    assert(axis_in.DSIZE == axi_wr_inf.DSIZE)
+    else begin
+        $error(\n"STREAM DSIZE[%d] MUST EQL AXI4 DSIZE[%d]\n",axis_in.DSIZE,axi_wr_inf.DSIZE);
+        $finish;
+    end
+end
+
+parameter    MAX_LENGTH     =   (axis_in.DSIZE <= 8)?  2**11 :
+                                (axis_in.DSIZE <= 16)? 2**10 :
+                                (axis_in.DSIZE <= 32)? 2**9  :
+                                (axis_in.DSIZE <= 64)? 2**8  :
+                                (axis_in.DSIZE <= 128)? 2**7 :
+                                (axis_in.DSIZE <= 256)? 2**6 :
+                                (axis_in.DSIZE <= 512)? 2**5 :  2**4;
+//--->> DATA FIFO <<--------------------------
+logic   data_fifo_empty;
+logic   data_fifo_full;
+
+axis_valve axis_valve_inst(
+    input                      button,          //[1] OPEN ; [0] CLOSE
+    axi_stream_inf.slaver      axis_in,
+    axi_stream_inf.master      axis_out
+);
+
+long_fifo_verb #(
+    .DSIZE      (axis_in.DSIZE+axis_in.KSIZE),
+    .LENGTH     (8192)
+)long_fifo_verb_inst(
+/*  input             */  wr_clk    (axis_in.aclk           ),
+/*  input             */  wr_rst    (!axis_in.aresetn       ),
+/*  input             */  rd_clk    (axi_wr_inf.axi_aclk    ),
+/*  input             */  rd_rst    (!axi_wr_inf.axi_aresetn ),
+/*  input [DSIZE-1:0] */  din       ({axis_in.axis_tkeep,axis_in.axis_tdata}    ),
+/*  input             */  wr_en     (axis_in.axis_tvalid && axis_in.axis_tready ),
+/*  input             */  rd_en     (),
+/*  output [DSIZE-1:0]*/  dout      (),
+/*  output            */  full      (data_fifo_full         ),
+/*  output            */  empty     (data_fifo_empty        )
+);
+//---<< DATA FIFO >>--------------------------
+//----->> SPLIT STREAM <<----------------------------------
+logic [11:0]        cnt;
+always@(posedge axis_in.aclk,negedge axis_in.aresetn)
+    if(~axis_in.aresetn)    cnt     <= '0;
+    else begin
+        if(axis_in.axis_tvalid && axis_in.axis_tready && axis_in.axis_tlast)
+                cnt     <= '0;
+        else if(axis_in.axis_tvalid && axis_in.axis_tready)begin
+            if(cnt >= MAX_LENGTH - 1)
+                    cnt <= '0;
+            else    cnt <= cnt + 1'b1;
+        end else begin
+            cnt <= cnt;
+        end
+    end
+//-----<< SPLIT STREAM >>----------------------------------
+//----->> LEN FIFO <<--------------------------------------
+logic           len_fifo_wr_en;
+logic           len_fifo_rd_en;
+logic [11:0]    len_fifo_wr_data;
+logic [11:0]    len_fifo_rd_data;
+logic           len_fifo_empty;
+logic           len_fifo_full;
+
+always@(posedge axis_in.aclk,negedge axis_in.aresetn)
+    if(~axis_in.aresetn)   len_fifo_wr_en   <= 1'b0;
+    else begin
+        if(axis_in.axis_tvalid && axis_in.axis_tready && axis_in.axis_tlast)
+            len_fifo_wr_en  <= 1'b1;
+        else if(axis_in.axis_tvalid && axis_in.axis_tready && (cnt >= MAX_LENGTH - 1) )
+            len_fifo_wr_en  <= 1'b1;
+        else
+            len_fifo_wr_en  <= 1'b0;
+    end
+
+always@(posedge axis_in.aclk,negedge axis_in.aresetn)
+    if(~axis_in.aresetn)   len_fifo_wr_data   <= '0;
+    else begin
+        if(axis_in.axis_tvalid && axis_in.axis_tready && axis_in.axis_tlast)
+            len_fifo_wr_data  <= cnt;
+        else if(axis_in.axis_tvalid && axis_in.axis_tready && (cnt >= MAX_LENGTH - 1) )
+            len_fifo_wr_data  <= cnt;
+        else
+            len_fifo_wr_data  <= len_fifo_wr_data;
+    end
+
+
+independent_clock_fifo #(
+    .DEPTH      (4      ),
+    .DSIZE      (12     )
+)independent_clock_fifo_inst(
+/*  input                   */    .wr_clk       (axis_in.aclk           ),
+/*  input                   */    .wr_rst_n     (axis_in.aresetn        ),
+/*  input                   */    .rd_clk       (axi_wr_inf.axi_aclk    ),
+/*  input                   */    .rd_rst_n     (axi_wr_inf.axi_aresetn  ),
+/*  input [DSIZE-1:0]       */    .wdata        (len_fifo_wr_data       ),
+/*  input                   */    .wr_en        (len_fifo_wr_en         ),
+/*  output logic[DSIZE-1:0] */    .rdata        (len_fifo_rd_data       ),
+/*  input                   */    .rd_en        (len_fifo_rd_en         ),
+/*  output logic            */    .empty        (len_fifo_empty         ),
+/*  output logic            */    .full         (len_fifo_full          )
+);
+//-----<< LEN FIFO >>--------------------------------------
+endmodule

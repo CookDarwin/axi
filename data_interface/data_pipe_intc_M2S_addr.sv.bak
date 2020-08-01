@@ -1,0 +1,231 @@
+/**********************************************
+_______________________________________ 
+___________    Cook Darwin   __________    
+_______________________________________
+descript:
+    multi slaver to simple master
+author : Cook.Darwin
+Version: VERA.0.0
+creaded: 2017/8/11 
+madified:
+***********************************************/
+`timescale 1ns/1ps
+module data_pipe_intc_M2S_addr #(
+    parameter   DSIZE = 8,
+    parameter   NUM   = 8,
+    parameter   NSIZE =  $clog2(NUM)
+)(
+    input                     clock,
+    input                     rst_n,
+    input                     clk_en,
+    input [NSIZE-1:0]         addr,     //sync to s00 valid ready
+
+    data_inf.slaver           s00 [NUM-1:0],
+    data_inf.master           m00
+);
+
+logic              from_up_vld;
+logic[DSIZE-1:0]   from_up_data;
+logic              to_up_ready;
+
+logic[NUM-1:0]     to_up_ready_array;
+logic[NUM-1:0]     from_up_vld_array;
+logic[DSIZE-1:0]   from_up_data_array [NUM-1:0];
+
+logic              from_down_ready;
+logic              to_down_vld;
+logic[DSIZE-1:0]   to_down_data;
+
+assign  from_down_ready = m00.ready;
+assign  m00.valid       = to_down_vld;
+assign  m00.data        = to_down_data;
+
+genvar KK;
+generate
+for(KK=0;KK<NUM;KK++)begin
+    assign from_up_vld_array[KK]    = s00[KK].valid;
+    assign from_up_data_array[KK]   = s00[KK].data;
+    assign s00[KK].ready            = to_up_ready_array[KK];
+end
+endgenerate
+
+assign from_up_vld    = from_up_vld_array[curr_path];
+assign from_up_data   = from_up_data_array[curr_path];
+
+
+assign to_up_ready = to_up_ready_array[curr_path];
+
+typedef enum {  IDLE                    ,
+                EM_CN_EM_BUF            ,     //  empty connector,empty buffer
+                VD_CN_EM_BUF            ,     //  valid connector,empty buffer
+                VD_CN_VD_BUF_CLD_OPU    ,     //  valid connector,valid buffer,close down stream ,open upstream
+                VD_CN_VD_BUF_OPD_CLU    ,     //  valid connector,valid buffer,open down stream ,close upstream
+                OVER_FLOW                     //  error
+            } STATUS;
+
+STATUS      cstate,nstate;
+
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   cstate  <= IDLE;
+    else         cstate  <= nstate;
+
+reg         over_flow_buffer;
+wire        empty_buffer;
+wire        full_buffer;
+reg         connector_vld;
+
+always@(*)
+    case(cstate)
+    IDLE:       nstate  = EM_CN_EM_BUF;
+    EM_CN_EM_BUF:
+        if(from_up_vld && to_up_ready && clk_en)
+                nstate  = VD_CN_EM_BUF;
+        else    nstate  = EM_CN_EM_BUF;
+    VD_CN_EM_BUF:
+        if(from_up_vld && to_up_ready && clk_en)begin
+            if(from_down_ready || !connector_vld)
+                    nstate = VD_CN_EM_BUF;
+            else    nstate = VD_CN_VD_BUF_CLD_OPU;
+        end else begin
+            if(!connector_vld)
+                    nstate = EM_CN_EM_BUF;
+            else    nstate = VD_CN_EM_BUF;
+        end
+    VD_CN_VD_BUF_CLD_OPU:
+        if(over_flow_buffer)
+                nstate = OVER_FLOW;
+        //else if(from_up_vld && to_up_ready && clk_en)
+        else if(full_buffer && clk_en)
+                nstate = VD_CN_VD_BUF_OPD_CLU;
+        else    nstate = VD_CN_VD_BUF_CLD_OPU;
+    VD_CN_VD_BUF_OPD_CLU:
+        if(empty_buffer && clk_en)
+                nstate = VD_CN_EM_BUF;
+        else    nstate = VD_CN_VD_BUF_OPD_CLU;
+    OVER_FLOW:  nstate = OVER_FLOW;
+    default:    nstate = IDLE;
+    endcase
+//--->> current path <<---------------------
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)  curr_path   <= {(NSIZE){1'b0}};
+    else
+        case(nstate)
+        IDLE,EM_CN_EM_BUF:
+                curr_path   <= sw;
+        default:curr_path   <= curr_path;
+        endcase
+//---<< current path >>---------------------
+//--->> to up ready signal <<---------------
+reg             to_u_ready_reg;
+reg             over_buf_vld;
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   to_up_ready_array   <= {NUM{1'd0}};
+    else begin
+        to_up_ready_array   <= {NUM{1'd0}};
+        case(nstate)
+        EM_CN_EM_BUF,VD_CN_EM_BUF:
+            if(clk_en)
+                    to_up_ready_array[curr_path]  <= vld_sw;
+            else    to_up_ready_array[curr_path]  <= to_up_ready_array[curr_path] && vld_sw;
+        VD_CN_VD_BUF_CLD_OPU:begin
+            if(clk_en)begin
+                if(from_up_vld && to_up_ready)
+                        to_up_ready_array[curr_path]   <= 1'b0;
+                else    to_up_ready_array[curr_path]   <= to_up_ready_array[curr_path] && vld_sw ;
+            end else    to_up_ready_array[curr_path]   <= to_up_ready_array[curr_path] && vld_sw;
+        end
+        default:to_up_ready_array[curr_path]   <= 1'b0;
+        endcase
+    end
+
+// assign to_up_ready  = to_u_ready_reg;
+//---<< to up ready signal >>---------------
+//--->> CONNECTOR <<------------------
+reg [DSIZE-1:0]     connector;
+// reg                 connector_vld;
+reg [DSIZE-1:0]     over_buf;
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   connector   <= {DSIZE{1'b0}};
+    else
+        case(nstate)
+        VD_CN_EM_BUF:
+            if(from_up_vld && to_up_ready && clk_en)
+                    connector   <= from_up_data;
+            else    connector   <= connector;
+        VD_CN_VD_BUF_OPD_CLU:
+            if(from_down_ready && to_down_vld && clk_en)
+                    connector   <= over_buf;
+            else    connector   <= connector;
+        default:connector   <= connector;
+        endcase
+
+
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   connector_vld   <= 1'b0;
+    else
+        case(nstate)
+        VD_CN_EM_BUF:
+            if(~(from_up_vld & to_up_ready) && from_down_ready && clk_en)
+                    connector_vld   <= 1'b0;
+            else    connector_vld   <= 1'b1;
+        VD_CN_VD_BUF_OPD_CLU:
+            if(clk_en)
+                    connector_vld   <= 1'b1;
+            else    connector_vld   <= connector_vld;
+        default:connector_vld   <= 1'b0;
+        endcase
+//---<< CONNECTOR >>------------------
+//----->> BUFFER <<---------------------
+always@(posedge clock/*,negedge rst_n*/)begin:BUFFER_BLOCK
+    if(~rst_n)begin
+        over_buf    <= {DSIZE{1'b0}};
+    end else begin
+        case(nstate)
+        VD_CN_VD_BUF_CLD_OPU:begin
+            if(from_up_vld && !over_buf_vld && clk_en)
+                    over_buf    <= from_up_data;
+            else    over_buf    <= over_buf;
+        end
+        VD_CN_VD_BUF_OPD_CLU:begin
+            if(from_down_ready && to_down_vld && clk_en)begin
+                    over_buf    <= {DSIZE{1'b0}};
+            end
+        end
+        default:;
+        endcase
+end end
+
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   over_buf_vld    <= 1'b0;
+    else
+        case(nstate)
+        VD_CN_VD_BUF_CLD_OPU:
+            if(clk_en)
+                    over_buf_vld <= from_up_vld;
+            else    over_buf_vld <= over_buf_vld;
+        VD_CN_VD_BUF_OPD_CLU:
+            if(from_down_ready && to_down_vld && clk_en)
+                    over_buf_vld <= 1'b0;
+            else    over_buf_vld <= over_buf_vld;
+        default:    over_buf_vld    <= 1'b0;
+        endcase
+
+assign empty_buffer = !over_buf_vld;
+assign full_buffer  =  over_buf_vld;
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   over_flow_buffer    <= 1'b0;
+    else
+        case(nstate)
+        VD_CN_VD_BUF_CLD_OPU:
+            if( over_buf_vld && to_up_ready && from_up_vld && clk_en)
+                    over_flow_buffer    <= 1'b1;
+            else    over_flow_buffer    <= 1'b0;
+        default:    over_flow_buffer    <= 1'b0;
+        endcase
+//-----<< BUFFER >>---------------------
+//----->> to down data <<---------------
+//-----<< to down data >>---------------
+assign to_down_data = connector;
+assign to_down_vld  = connector_vld;
+
+endmodule

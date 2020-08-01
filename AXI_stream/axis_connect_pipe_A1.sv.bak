@@ -1,0 +1,170 @@
+/**********************************************
+_______________________________________ 
+___________    Cook Darwin   __________    
+_______________________________________
+descript:
+author : Cook.Darwin
+Version: VERA.1.0 2017/9/29 
+    rewrite
+creaded: 2016/12/8 
+madified:
+***********************************************/
+`timescale 1ns/1ps
+(* axi_stream = "true" *)
+module axis_connect_pipe_A1(
+    (* up_stream = "true" *)
+    axi_stream_inf.slaver      axis_in,
+    (* down_stream = "true" *)
+    axi_stream_inf.master      axis_out
+);
+
+import SystemPkg::*;
+
+initial begin
+    assert(axis_in.DSIZE == axis_out.DSIZE)
+    else $error("SLAVER AXIS DSIZE != MASTER AXIS DSIZE");
+end
+
+wire    clock,rst_n,clk_en;
+
+assign  clock   = axis_in.aclk;
+assign  rst_n   = axis_in.aresetn;
+assign  clk_en  = axis_in.aclken;
+
+logic   from_up_vld;
+logic   to_up_ready;
+logic   from_down_ready;
+logic   connector_vld;
+logic   over_flow_buffer;
+
+assign  from_up_vld = axis_in.axis_tvalid;
+assign  axis_in.axis_tready = to_up_ready;
+assign  from_down_ready     = axis_out.axis_tready;
+
+
+// reg [3:0]       cstate,nstate;
+enum {          IDLE                    = 4'd0,
+                EM_CN_EM_BUF            = 4'd1,     //  empty connector,empty buffer
+                VD_CN_EM_BUF            = 4'd2,     //  valid connector,empty buffer
+                VD_CN_VD_BUF_CLD_OPU    = 4'd3,     //  valid connector,valid buffer,close down stream ,open upstream
+                VD_CN_VD_BUF_OPD_CLU    = 4'd4,     //  valid connector,valid buffer,open down stream ,close upstream
+                OVER_FLOW               = 4'd5} cstate,nstate;     //  error
+
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   cstate  <= IDLE;
+    else         cstate  <= nstate;
+
+always@(*)
+    case(cstate)
+    IDLE:       nstate  = EM_CN_EM_BUF;
+    EM_CN_EM_BUF:
+        if(from_up_vld && to_up_ready && clk_en)
+                nstate  = VD_CN_EM_BUF;
+        else    nstate  = EM_CN_EM_BUF;
+    VD_CN_EM_BUF:
+        if(from_up_vld && to_up_ready && clk_en)begin
+            if(from_down_ready || !connector_vld)
+                    nstate = VD_CN_EM_BUF;
+            else    nstate = VD_CN_VD_BUF_CLD_OPU;
+        end else begin
+            if(!connector_vld)
+                    nstate = EM_CN_EM_BUF;
+            else    nstate = VD_CN_EM_BUF;
+        end
+    VD_CN_VD_BUF_CLD_OPU:
+            nstate = VD_CN_VD_BUF_OPD_CLU;
+    VD_CN_VD_BUF_OPD_CLU:
+        if(empty_buffer && clk_en)
+                nstate = VD_CN_EM_BUF;
+        else    nstate = VD_CN_VD_BUF_OPD_CLU;
+    OVER_FLOW:  nstate = OVER_FLOW;
+    default:    nstate = IDLE;
+    endcase
+
+//--->> to up ready signal <<---------------
+reg             to_u_ready_reg;
+reg             over_buf_vld;
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   to_u_ready_reg  <= 1'b0;
+    else
+        case(nstate)
+        EM_CN_EM_BUF,VD_CN_EM_BUF:
+            if(clk_en)
+                    to_u_ready_reg  <= 1'b1;
+            else    to_u_ready_reg  <= to_u_ready_reg;
+        VD_CN_VD_BUF_CLD_OPU:begin
+            if(clk_en)begin
+                if(from_up_vld && to_up_ready)
+                        to_u_ready_reg  <= 1'b0;
+                else    to_u_ready_reg  <= to_u_ready_reg;
+            end else    to_u_ready_reg  <= to_u_ready_reg;
+        end
+        default:to_u_ready_reg  <= 1'b0;
+        endcase
+
+assign to_up_ready  = to_u_ready_reg;
+//---<< to up ready signal >>---------------
+//--->> CONNECTOR <<------------------
+reg [axis_in.DSIZE-1:0]     connector;
+logic                       connector_last;
+logic[axis_in.KSIZE-1:0]    connector_keep;
+logic                       connector_user;
+reg [axis_in.DSIZE-1:0]     over_buf;
+logic                       over_buf_last;
+logic[axis_in.KSIZE-1:0]    over_buf_keep;
+logic                       over_buf_user;
+
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   connector   <= '0;
+    else
+        case(nstate)
+        VD_CN_EM_BUF:
+            if(from_up_vld && to_up_ready && clk_en)
+                    connector   <= axis_in.axis_tdata;
+            else    connector   <= connector;
+        VD_CN_VD_BUF_OPD_CLU:
+            if(from_down_ready && to_down_vld && clk_en)
+                    connector   <= over_buf;
+            else    connector   <= connector;
+        // IDLE,EM_CN_EM_BUF,VD_CN_VD_BUF_CLD_OPU:
+        IDLE,EM_CN_EM_BUF:
+                connector   <= '0;
+        default:connector   <= connector;
+        endcase
+
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   connector_last   <= '0;
+    else
+        case(nstate)
+        VD_CN_EM_BUF:
+            if(from_up_vld && to_up_ready && clk_en)
+                    connector_last   <= axis_in.axis_tlast;
+            else    connector_last   <= connector_last;
+        VD_CN_VD_BUF_OPD_CLU:
+            if(from_down_ready && to_down_vld && clk_en)
+                    connector_last   <= over_buf_last;
+            else    connector_last   <= connector_last;
+        // IDLE,EM_CN_EM_BUF,VD_CN_VD_BUF_CLD_OPU:
+        IDLE,EM_CN_EM_BUF:
+                connector_last   <= '0;
+        default:connector_last   <= connector_last;
+        endcase
+
+
+always@(posedge clock/*,negedge rst_n*/)
+    if(~rst_n)   connector_vld   <= 1'b0;
+    else
+        case(nstate)
+        VD_CN_EM_BUF:
+            if(~(from_up_vld & to_up_ready) && from_down_ready && clk_en)
+                    connector_vld   <= 1'b0;
+            else    connector_vld   <= 1'b1;
+        VD_CN_VD_BUF_OPD_CLU:
+            if(clk_en)
+                    connector_vld   <= 1'b1;
+            else    connector_vld   <= connector_vld;
+        default:connector_vld   <= 1'b0;
+        endcase
+//---<< CONNECTOR >>------------------
+
+endmodule

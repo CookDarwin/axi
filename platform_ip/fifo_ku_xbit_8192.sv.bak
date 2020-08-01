@@ -1,0 +1,107 @@
+/**********************************************
+_______________________________________ 
+___________    Cook Darwin   __________    
+_______________________________________
+descript:
+author : Cook.Darwin
+Version: VERA.0.0
+creaded: 2017/9/18 
+madified:
+***********************************************/
+`timescale 1ns/1ps
+module fifo_ku_xbit_8192 #(
+    parameter DSIZE = 18
+)(
+    input               wr_clk,
+    input               wr_rst,
+    input               rd_clk,
+    input               rd_rst,
+    input [DSIZE-1:0]   din   ,
+    input               wr_en ,
+    input               rd_en ,
+    output [DSIZE-1:0]  dout  ,
+    output              full  ,
+    output              empty ,
+    output [12:0]       rdcount,
+    output [12:0]       wrcount
+);
+
+
+localparam NSIZE = DSIZE/18;
+localparam PSIZE = DSIZE%18;
+
+localparam MSIZE = NSIZE + (PSIZE != 0);
+
+logic       pfull;
+logic       pempty;
+logic[12:0] prdcount;
+logic[12:0] pwrcount;
+
+generate
+if(PSIZE >= 1)begin
+
+fifo_ku_18bit #(
+    .DSIZE      (PSIZE  )
+)fifo_ku_18bit_inst(
+/*  input              */  .wr_clk  (wr_clk     ),
+/*  input              */  .wr_rst  (wr_rst     ),
+/*  input              */  .rd_clk  (rd_clk     ),
+/*  input              */  .rd_rst  (rd_rst     ),
+/*  input [DSIZE-1:0]  */  .din     (din[DSIZE-1-:PSIZE]   ),
+/*  input              */  .wr_en   (wr_en      ),
+/*  input              */  .rd_en   (rd_en      ),
+/*  output [DSIZE-1:0] */  .dout    (dout[DSIZE-1-:PSIZE]  ),
+/*  output             */  .full    (pfull      ),
+/*  output             */  .empty   (pempty     ),
+/*  output [12:0]      */  .rdcount (prdcount   ),
+/*  output [12:0]      */  .wrcount (pwrcount   )
+);
+end
+endgenerate
+
+logic       nfull       [MSIZE-1:0];
+logic       nempty      [MSIZE-1:0];
+logic[12:0] nrdcount    [MSIZE-1:0];
+logic[12:0] nwrcount    [MSIZE-1:0];
+
+genvar KK;
+generate
+for(KK=0;KK<NSIZE;KK++)begin
+    fifo_ku_18bit #(
+        .DSIZE      (18  )
+    )fifo_ku_18bit_inst(
+    /*  input              */  .wr_clk  (wr_clk     ),
+    /*  input              */  .wr_rst  (wr_rst     ),
+    /*  input              */  .rd_clk  (rd_clk     ),
+    /*  input              */  .rd_rst  (rd_rst     ),
+    /*  input [DSIZE-1:0]  */  .din     (din[KK*18+:18]   ),
+    /*  input              */  .wr_en   (wr_en      ),
+    /*  input              */  .rd_en   (rd_en      ),
+    /*  output [DSIZE-1:0] */  .dout    (dout[KK*18+:18]  ),
+    /*  output             */  .full    (nfull    [KK]),
+    /*  output             */  .empty   (nempty   [KK]),
+    /*  output [12:0]      */  .rdcount (nrdcount [KK]),
+    /*  output [12:0]      */  .wrcount (nwrcount [KK])
+    );
+end
+endgenerate
+
+generate
+if(PSIZE >= 1)begin
+
+assign full      =  pfull      ;
+assign empty     =  pempty     ;
+assign rdcount   =  prdcount   ;
+assign wrcount   =  pwrcount   ;
+
+end else begin
+
+assign full      =  mfull   [0]   ;
+assign empty     =  mempty  [0]   ;
+assign rdcount   =  mrdcount[0]   ;
+assign wrcount   =  mwrcount[0]   ;
+
+end
+endgenerate
+
+endmodule
