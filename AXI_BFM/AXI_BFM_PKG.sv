@@ -563,6 +563,14 @@ task automatic ar_task(logic [ASIZE-1:0]    addr,logic [LSIZE-1:0]  len);
     inf.axi_arlen   = len-1;
     inf.axi_araddr  = addr;
     sync_wait(inf.axi_arready);
+    // forever begin 
+    //     @(negedge inf.axi_aclk);
+    //     if(inf.axi_arready)begin 
+    //         break;
+    //     end 
+    // end
+    // @(negedge inf.axi_aclk);
+    #(1ps);
     inf.axi_arvalid = 0;
     if(MSG=="ON")
         $display("%t,MASTER AXI4 READ ADDR[%h]",$time,addr);
@@ -578,6 +586,7 @@ IdAddrLen_S ial;
     ial.id  = inf.axi_arid;
     ial.addr = inf.axi_araddr;
     ial.len = inf.axi_arlen;
+    #(1ps);
     inf.axi_arvalid = 0;
     if(MSG=="ON")
         $display("%t,MASTER AXI4 READ ADDR[%h]",$time,addr);
@@ -620,9 +629,16 @@ int    real_len;
 
         if(rt < valid_ramdon_percent)begin
             inf.axi_wvalid  = 1;
+            #(1ps);
             inf.axi_wdata  = data_ss.size() != 0? data_ss.pop_front : inf.axi_wdata;
             inf.axi_wlast  = data_ss.size() == 0;
             sync_wait(inf.axi_wready);
+            // forever begin 
+            //     @(negedge inf.axi_aclk);
+            //     if(inf.axi_wready)begin 
+            //         break;
+            //     end
+            // end
             if(inf.axi_wlast)
                 break;
         end else begin
@@ -633,7 +649,8 @@ int    real_len;
 
     end
 
-    #1
+    #(1ps)
+    // @(negedge inf.axi_aclk);
     inf.axi_wvalid    = 0;
     inf.axi_wlast     = 0;
     if(MSG=="ON")
@@ -650,14 +667,24 @@ int     rm;
         else    inf.axi_rready    = 0;
         if(inf.axi_rready)begin
             sync_wait(inf.axi_rvalid);
+            // forever begin 
+            //     @(negedge inf.axi_aclk);
+            //     if(inf.axi_rvalid)begin 
+            //         // @(posedge inf.axi_aclk);
+            //         break;
+            //     end
+            // end
+
             data.push_back(inf.axi_rdata);
             if(inf.axi_rlast)begin
+                // @(posedge inf.axi_aclk);
                     break;
             end
         end else begin
             @(posedge inf.axi_aclk);
         end
     end
+    #(1ps);
     inf.axi_rready    = 0;
     if(MSG=="ON")
         $display("%t,MASTER AXI4 READ LENGTH [%d] DATA DONE!!!",$time,data.size());
@@ -697,12 +724,14 @@ task automatic out_of_order_read_burst(
     int                    ready_ramdon_percent,
     ref  [DSIZE-1:0]       data_s [$]
 );
-fork
-    foreach(ial[i])
-        ar_od_task(ial[i].id,ial[i].addr,ial[i].len);
-    foreach(ial[i])
-        get_axi_data(ready_ramdon_percent,data_s);
-join
+    fork
+        foreach(ial[i])
+            ar_od_task(ial[i].id,ial[i].addr,ial[i].len);
+        foreach(ial[i])
+            get_axi_data(ready_ramdon_percent,data_s);
+    join
+    if(MSG=="ON")
+        $display("%t,MASTER AXI4 OUT OF ORDER READ BURST DONE!!!",$time);
 endtask:out_of_order_read_burst
 
 
@@ -745,9 +774,11 @@ endfunction:new
 
 task automatic sync_wait(ref logic condition);
     forever begin
-        @(posedge inf.axi_aclk);
-        if(condition)
+        @(negedge inf.axi_aclk);
+        if(condition)begin 
+            @(posedge inf.axi_aclk);
             break;
+        end
     end
 endtask:sync_wait
 

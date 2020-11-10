@@ -7,7 +7,9 @@ descript:
 author : Cook.Darwin
 Version: VERA.2.0
     use data_inf_c
-creaded: 2017/2/27 
+Version: VERA.2.1 
+    use data_c_pipe_intc_M2S_robin_with_id
+creaded: 
 madified:
 ***********************************************/
 `timescale 1ns/1ps
@@ -107,7 +109,7 @@ assign      rst_n   = master.axi_aresetn;
 genvar KK;
 logic [NSIZE-1:0]                   port_arid [NUM-1:0];
 // logic [slaver[0].IDSIZE+NSIZE-1:0]  arid [NUM-1:0];
-logic [LAZISE+NSIZE-1:0]  arid [NUM-1:0];
+bit [LAZISE+NSIZE-1:0]  arid [NUM-1:0];
 generate
 for(KK=0;KK<NUM;KK++)begin:ARID_BLOCK
 assign port_arid[KK]   = KK;
@@ -156,13 +158,23 @@ endgenerate
 // /*  data_inf.master    */ .m00          (m00_raddr_inf     )
 // );
 
-data_c_pipe_intc_M2S_verc_with_id #(
-    .PRIO       ("BEST_ROBIN"   ),   //BEST_ROBIN BEST_LAST ROBIN LAST WAIT_IDLE
-    // .PRIO       ("WAIT_IDLE"   ),   //BEST_ROBIN BEST_LAST ROBIN LAST WAIT_IDLE
+// data_c_pipe_intc_M2S_verc_with_id #(
+//     .PRIO       ("ROBIN"   ),   //BEST_ROBIN BEST_LAST ROBIN LAST WAIT_IDLE
+//     // .PRIO       ("WAIT_IDLE"   ),   //BEST_ROBIN BEST_LAST ROBIN LAST WAIT_IDLE
+//     .NUM        (NUM            ),
+//     .IDSIZE     (master.IDSIZE  )
+// )raddr_inst(
+// /*  input [NUM-1:0]        */   .last       ('1                 ),             //ctrl prio
+// /*  input [IDSIZE-1:0]     */   .sid        (arid               ),//[NUM-1:0],
+// /*  output[IDSIZE-1:0]     */   .mid        (master.axi_arid    ),
+// /*  data_inf_c.slaver      */   .s00        (s00_raddr_inf      ),//[NUM-1:0],
+// /*  data_inf_c.master      */   .m00        (m00_raddr_inf      )
+// );
+
+data_c_pipe_intc_M2S_robin_with_id #(
     .NUM        (NUM            ),
     .IDSIZE     (master.IDSIZE  )
 )raddr_inst(
-/*  input [NUM-1:0]        */   .last       ('1                 ),             //ctrl prio
 /*  input [IDSIZE-1:0]     */   .sid        (arid               ),//[NUM-1:0],
 /*  output[IDSIZE-1:0]     */   .mid        (master.axi_arid    ),
 /*  data_inf_c.slaver      */   .s00        (s00_raddr_inf      ),//[NUM-1:0],

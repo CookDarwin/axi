@@ -5,7 +5,8 @@ _______________________________________
 descript:
     out of order
 author : Cook.Darwin
-Version: VERA.0.0
+Version: VERB.0.0
+    update read partition
 creaded: 2017/3/7 
 madified:
 ***********************************************/
@@ -53,12 +54,12 @@ endgenerate
 
 generate
 if((FORCE_MODE>2 && (slaver.MODE=="BOTH" || slaver.MODE=="ONLY_READ")) || FORCE_MODE==0 || FORCE_MODE==2)
-axi4_partition_rd_OD #(
+axi4_partition_rd_verb #(
     .PSIZE      (PSIZE      )
     // .ADDR_STEP  (ADDR_STEP  )
 )axi4_partition_rd_inst(
-/*    axi_inf.slaver_rd */  .slaver     (`slaver_vcs_cptRead       ),
-/*    axi_inf.master_rd */  .master     (`master_vcs_cptRead       )
+/*    axi_inf.slaver_rd */  .long_inf     (`slaver_vcs_cptRead       ),
+/*    axi_inf.master_rd */  .short_inf    (`master_vcs_cptRead       )
 );
 endgenerate
 

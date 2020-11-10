@@ -139,4 +139,91 @@ generate
     end
 endgenerate
 
+// generate
+//     if(master.MODE == "BOTH" || master.MODE == "ONLY_WRITE")begin 
+//         // if(master.MODE == "BOTH")begin 
+//             if(slaver.MODE == "ONLY_WRITE")begin 
+//                 assign master.axi_awid     = slaver.axi_awid   ;
+//                 assign master.axi_awaddr   = slaver.axi_awaddr ;
+//                 assign master.axi_awlen    = slaver.axi_awlen  ;
+//                 assign master.axi_awsize   = slaver.axi_awsize ;
+//                 assign master.axi_awburst  = slaver.axi_awburst;
+//                 assign master.axi_awlock   = slaver.axi_awlock ;
+//                 assign master.axi_awcache  = slaver.axi_awcache;
+//                 assign master.axi_awprot   = slaver.axi_awprot ;
+//                 assign master.axi_awqos    = slaver.axi_awqos  ;
+//                 assign master.axi_awvalid  = slaver.axi_awvalid;
+//                 assign slaver.axi_awready  = master.axi_awready;
+//                 assign master.axi_wdata    = slaver.axi_wdata  ;
+//                 assign master.axi_wstrb    = slaver.axi_wstrb  ;
+//                 assign master.axi_wlast    = slaver.axi_wlast  ;
+//                 assign master.axi_wvalid   = slaver.axi_wvalid ;
+//                 assign slaver.axi_wready   = master.axi_wready ;
+//                 assign master.axi_bready   = slaver.axi_bready ;
+//                 assign slaver.axi_bid      = master.axi_bid    ;
+//                 assign slaver.axi_bresp    = master.axi_bresp  ;
+//                 assign slaver.axi_bvalid   = master.axi_bvalid ;
+
+//                 assign master.axi_arid     = '0 ;
+//                 assign master.axi_araddr   = '0 ;
+//                 assign master.axi_arlen    = '0 ;
+//                 assign master.axi_arsize   = '0 ;
+//                 assign master.axi_arburst  = '0 ;
+//                 assign master.axi_arlock   = '0 ;
+//                 assign master.axi_arcache  = '0 ;
+//                 assign master.axi_arprot   = '0 ;
+//                 assign master.axi_arqos    = '0 ;
+//                 assign master.axi_arvalid  = '0 ;
+//                 assign slaver.axi_arready  = 1'b0;
+//                 assign master.axi_rready   = 1'b0 ;
+//                 assign slaver.axi_rid      = '0 ;
+//                 assign slaver.axi_rdata    = '0 ;
+//                 assign slaver.axi_rresp    = '0 ;
+//                 assign slaver.axi_rlast    = '0 ;
+//                 assign slaver.axi_rvalid   = '0 ;
+//             end else if(slaver.MODE == "ONLY_READ")begin 
+//                 assign master.axi_awid     = '0 ;
+//                 assign master.axi_awaddr   = '0 ;
+//                 assign master.axi_awlen    = '0 ;
+//                 assign master.axi_awsize   = '0 ;
+//                 assign master.axi_awburst  = '0 ;
+//                 assign master.axi_awlock   = '0 ;
+//                 assign master.axi_awcache  = '0 ;
+//                 assign master.axi_awprot   = '0 ;
+//                 assign master.axi_awqos    = '0 ;
+//                 assign master.axi_awvalid  = '0 ;
+//                 assign slaver.axi_awready  = '0 ;
+//                 assign master.axi_wdata    = '0 ;
+//                 assign master.axi_wstrb    = '0 ;
+//                 assign master.axi_wlast    = '0 ;
+//                 assign master.axi_wvalid   = '0 ;
+//                 assign slaver.axi_wready   = '0 ;
+//                 assign master.axi_bready   = '0 ;
+//                 assign slaver.axi_bid      = '0 ;
+//                 assign slaver.axi_bresp    = '0 ;
+//                 assign slaver.axi_bvalid   = '0 ;
+
+//                 assign master.axi_arid     = slaver.axi_arid   ;
+//                 assign master.axi_araddr   = slaver.axi_araddr ;
+//                 assign master.axi_arlen    = slaver.axi_arlen  ;
+//                 assign master.axi_arsize   = slaver.axi_arsize ;
+//                 assign master.axi_arburst  = slaver.axi_arburst;
+//                 assign master.axi_arlock   = slaver.axi_arlock ;
+//                 assign master.axi_arcache  = slaver.axi_arcache;
+//                 assign master.axi_arprot   = slaver.axi_arprot ;
+//                 assign master.axi_arqos    = slaver.axi_arqos  ;
+//                 assign master.axi_arvalid  = slaver.axi_arvalid;
+//                 assign slaver.axi_arready  = master.axi_arready;
+//                 assign master.axi_rready   = slaver.axi_rready ;
+//                 assign slaver.axi_rid      = master.axi_rid    ;
+//                 assign slaver.axi_rdata    = master.axi_rdata  ;
+//                 assign slaver.axi_rresp    = master.axi_rresp  ;
+//                 assign slaver.axi_rlast    = master.axi_rlast  ;
+//                 assign slaver.axi_rvalid   = master.axi_rvalid ;
+
+//             end
+//         // end
+//     end
+// endgenerate
+
 endmodule

@@ -8,6 +8,8 @@ Version: VERA.0.1 2017/9/28
     user axi4 addr_step
 Version: VERC.0.0 2018/11/23 
     rebuild
+Version: VERC.0.1
+    use ddr_native_fifo_A1
 creaded: 2016/10/12
 madified:
 ***********************************************/
@@ -43,7 +45,7 @@ ddr_axi4_to_axis ddr_axi4_to_axis_inst(
 );
 
 
-ddr_native_fifo #(
+ddr_native_fifo_A1 #(
     .ADDR_WIDTH     (ADDR_WIDTH   ),
     .DATA_WIDTH     (DATA_WIDTH   )
 )ddr_native_fifo_inst(

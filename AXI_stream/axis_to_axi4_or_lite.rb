@@ -1,5 +1,5 @@
 # require_relative "../prj_lib"
-require_relative "../AXI4/axis_to_axi4_wr.rb"
+require_sdl "axis_to_axi4_wr.rb"
 new_m = SdlModule.new(name:File.basename(__FILE__,".rb"),out_sv_path:__dir__)
 new_m.target_class = AxiStream
 

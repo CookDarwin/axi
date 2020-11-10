@@ -12,7 +12,8 @@ madified:
 module model_ddr_ip_app #(
     parameter ADDR_WIDTH            = 27,
     parameter DATA_WIDTH            = 256,
-    parameter MARK_X                = "OFF"
+    parameter MARK_X                = "OFF",
+    parameter DISPLAY               = "ON"
 )(
     input                           clock,
     input  [ADDR_WIDTH-1:0]         app_addr,
@@ -53,6 +54,7 @@ int     rt;
         @(posedge clock);
         #(1ps);
     end
+    @(negedge clock);
 endtask:ramdon_signal
 
 task automatic ramdon_signal_time (int t,int  rate,ref logic data);
@@ -74,14 +76,14 @@ endtask:ramdon_signal_time
 task automatic cmd ();
     app_rdy = 1;
     fork
-        ramdon_signal(50,app_rdy);
+        ramdon_signal(99,app_rdy);
     join_none
 endtask:cmd
 
 task automatic write();
     app_wdf_rdy = 1;
     fork
-        ramdon_signal(50,app_wdf_rdy);
+        ramdon_signal(99,app_wdf_rdy);
     join_none
 endtask:write
 
@@ -138,8 +140,8 @@ logic [DATA_WIDTH-1:0]      data;
             data    = data_queue.pop_front();
             // if( |addr == 1'b0 || addr == 1'b1)
             data_mem[addr]  = data;
-
-            $display("WRITE DDR ADDR[%h],DATA[%h]",addr,data);
+            if(DISPLAY=="ON" && DISPLAY=="TRUE")
+                $display("WRITE DDR ADDR[%h],DATA[%h]",addr,data);
         end
     join_none
 endtask : write_data
@@ -215,7 +217,8 @@ int     addr;
                     //     if(|app_rd_data == 1'bx)
                     //             app_rd_data <= '1;
                     // end
-                    $display("READ DDR ADDR[%h],DATA[%h]",addr,app_rd_data);
+                    if(DISPLAY=="ON" && DISPLAY=="TRUE")
+                        $display("READ DDR ADDR[%h],DATA[%h]",addr,app_rd_data);
                     foreach(app_rd_data[i])begin
                         if(MARK_X == "ON" || MARK_X == "TRUE")begin
                             if(app_rd_data[i] === 1'bx)

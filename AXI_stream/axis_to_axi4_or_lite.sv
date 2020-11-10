@@ -5,7 +5,7 @@ _______________________________________
 descript:
 author : Cook.Darwin
 Version: VERA.0.0
-created: 2020-07-17 17:26:24 +0800
+created: xxxx.xx.xx
 madified:
 ***********************************************/
 `timescale 1ns/1ps
@@ -26,13 +26,13 @@ logic axis_axi4_rd_inf_seq_vld;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) sub_rx_inf [3:0] (.aclk(axis_in.aclk),.aresetn(axis_in.aresetn),.aclken(1'b1)) ;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) axis_axi4_wr_inf (.aclk(axis_in.aclk),.aresetn(axis_in.aresetn),.aclken(1'b1)) ;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) seq_tail_stream (.aclk(axis_in.aclk),.aresetn(axis_in.aresetn),.aclken(1'b1)) ;
-axi_inf #(.DSIZE(axi4m.DSIZE),.IDSIZE(axi4m.IDSIZE),.ASIZE(axi4m.ASIZE),.LSIZE(axi4m.LSIZE),.MODE(axi4m.MODE),.ADDR_STEP(axi4m.ADDR_STEP)) axi4m_vcs_cp_8 (.axi_aclk(axi4m.axi_aclk),.axi_aresetn(axi4m.axi_aresetn)) ;
+axi_inf #(.DSIZE(axi4m.DSIZE),.IDSIZE(axi4m.IDSIZE),.ASIZE(axi4m.ASIZE),.LSIZE(axi4m.LSIZE),.MODE(axi4m.MODE),.ADDR_STEP(axi4m.ADDR_STEP)) axi4m_vcs_cp_R108 (.axi_aclk(axi4m.axi_aclk),.axi_aresetn(axi4m.axi_aresetn)) ;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) axis_axi4_rd_inf (.aclk(axis_in.aclk),.aresetn(axis_in.aresetn),.aclken(1'b1)) ;
-axi_stream_inf #(.DSIZE(rd_rel_axis.DSIZE)) rd_rel_axis_inherited723 (.aclk(rd_rel_axis.aclk),.aresetn(rd_rel_axis.aresetn),.aclken(1'b1)) ;
-axi_inf #(.DSIZE(axi4m.DSIZE),.IDSIZE(axi4m.IDSIZE),.ASIZE(axi4m.ASIZE),.LSIZE(axi4m.LSIZE),.MODE(axi4m.MODE),.ADDR_STEP(axi4m.ADDR_STEP)) axi4m_vcs_cp_1010 (.axi_aclk(axi4m.axi_aclk),.axi_aresetn(axi4m.axi_aresetn)) ;
+axi_stream_inf #(.DSIZE(rd_rel_axis.DSIZE)) rd_rel_axis_inheritedR47 (.aclk(rd_rel_axis.aclk),.aresetn(rd_rel_axis.aresetn),.aclken(1'b1)) ;
+axi_inf #(.DSIZE(axi4m.DSIZE),.IDSIZE(axi4m.IDSIZE),.ASIZE(axi4m.ASIZE),.LSIZE(axi4m.LSIZE),.MODE(axi4m.MODE),.ADDR_STEP(axi4m.ADDR_STEP)) axi4m_vcs_cp_R698 (.axi_aclk(axi4m.axi_aclk),.axi_aresetn(axi4m.axi_aresetn)) ;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) axis_lite_wr_inf (.aclk(axis_in.aclk),.aresetn(axis_in.aresetn),.aclken(1'b1)) ;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) axis_lite_rd_inf (.aclk(axis_in.aclk),.aresetn(axis_in.aresetn),.aclken(1'b1)) ;
-axi_stream_inf #(.DSIZE(rd_rel_axis.DSIZE)) rd_rel_axis_inherited3 (.aclk(rd_rel_axis.aclk),.aresetn(rd_rel_axis.aresetn),.aclken(1'b1)) ;
+axi_stream_inf #(.DSIZE(rd_rel_axis.DSIZE)) rd_rel_axis_inheritedR1807 (.aclk(rd_rel_axis.aclk),.aresetn(rd_rel_axis.aresetn),.aclken(1'b1)) ;
 //==========================================================================
 //-------- instance --------------------------------------------------------
 axi_stream_interconnect_S2M_auto #(
@@ -63,14 +63,14 @@ axis_to_axi4_wr axis_to_axi4_wr_inst(
 /* input                 */.addr       (axis_axi4_wr_inf_seq ),
 /* input                 */.max_length (2048                 ),
 /* axi_stream_inf.slaver */.axis_in    (seq_tail_stream      ),
-/* axi_inf.master_wr     */.axi_wr     (axi4m_vcs_cp_8       )
+/* axi_inf.master_wr     */.axi_wr     (axi4m_vcs_cp_R108    )
 );
 vcs_axi4_comptable #(
     .ORIGIN ("master_wr" ),
     .TO     ("master"    )
-)vcs_axi4_comptable_axi_wr_155_axi4m_inst(
-/* input  */.origin (axi4m_vcs_cp_8 ),
-/* output */.to     (axi4m          )
+)vcs_axi4_comptable_axi_wr_R986_axi4m_inst(
+/* input  */.origin (axi4m_vcs_cp_R108 ),
+/* output */.to     (axi4m             )
 );
 axis_direct axis_direct_inst1(
 /* axi_stream_inf.slaver */.slaver (sub_rx_inf[1]    ),
@@ -94,14 +94,14 @@ odata_pool_axi4_A1 odata_pool_axi4_A1_inst(
 /* input                 */.size        (axis_axi4_rd_inf_seq[31:0]  ),
 /* input                 */.valid       (axis_axi4_rd_inf_seq_vld    ),
 /* output                */.ready       (/*unused */                 ),
-/* axi_stream_inf.master */.out_axis    (rd_rel_axis_inherited723    ),
-/* axi_inf.master_rd     */.axi_master  (axi4m_vcs_cp_1010           )
+/* axi_stream_inf.master */.out_axis    (rd_rel_axis_inheritedR47    ),
+/* axi_inf.master_rd     */.axi_master  (axi4m_vcs_cp_R698           )
 );
 vcs_axi4_comptable #(
     .ORIGIN ("master_rd" ),
     .TO     ("master"    )
-)vcs_axi4_comptable_axi_master_303_axi4m_inst(
-/* input  */.origin (axi4m_vcs_cp_1010 ),
+)vcs_axi4_comptable_axi_master_R1954_axi4m_inst(
+/* input  */.origin (axi4m_vcs_cp_R698 ),
 /* output */.to     (axi4m             )
 );
 axis_direct axis_direct_inst2(
@@ -121,9 +121,9 @@ axis_direct axis_direct_inst3(
 axis_to_lite_rd #(
     .DUMMY (4 )
 )axis_to_lite_rd_inst(
-/* axi_stream_inf.slaver  */.axis_in     (axis_lite_rd_inf       ),
-/* axi_stream_inf.master  */.rd_rel_axis (rd_rel_axis_inherited3 ),
-/* axi_lite_inf.master_rd */.lite        (lite                   )
+/* axi_stream_inf.slaver  */.axis_in     (axis_lite_rd_inf           ),
+/* axi_stream_inf.master  */.rd_rel_axis (rd_rel_axis_inheritedR1807 ),
+/* axi_lite_inf.master_rd */.lite        (lite                       )
 );
 //==========================================================================
 //-------- expression ------------------------------------------------------
@@ -132,12 +132,12 @@ axi_stream_inf #(.DSIZE(rd_rel_axis.DSIZE))  sub_rd_rel_axis[2-1:0](.aclk(rd_rel
 
 
 axis_direct  axis_direct_rd_rel_axis_inst0 (
-/*  axi_stream_inf.slaver*/ .slaver (rd_rel_axis_inherited723),
+/*  axi_stream_inf.slaver*/ .slaver (rd_rel_axis_inheritedR47),
 /*  axi_stream_inf.master*/ .master (sub_rd_rel_axis[0])
 );
 
 axis_direct  axis_direct_rd_rel_axis_inst1 (
-/*  axi_stream_inf.slaver*/ .slaver (rd_rel_axis_inherited3),
+/*  axi_stream_inf.slaver*/ .slaver (rd_rel_axis_inheritedR1807),
 /*  axi_stream_inf.master*/ .master (sub_rd_rel_axis[1])
 );
 

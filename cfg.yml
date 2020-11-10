@@ -1,0 +1,13 @@
+mentor:
+    ignores:
+        - bak/
+        - top/
+
+    ex_paths:
+        - ./macro
+
+tdl_paths:
+    - ./AXI_stream
+    - ./AXI4
+    - ./common
+    - ./data_interface

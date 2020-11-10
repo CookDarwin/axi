@@ -94,7 +94,7 @@ always@(posedge axi4_mirror.axi_aclk,negedge axi4_mirror.axi_aresetn)
 //(* dont_touch="true" *)
 logic       wrong_id;
 
-always@(posedge axi4_mirror.axi_aclk,negedge axi4_mirror.axi_aresetn)
+always@(negedge axi4_mirror.axi_aclk,negedge axi4_mirror.axi_aresetn)
     if(~axi4_mirror.axi_aresetn) wrong_id    <= 1'b0;
     else begin
         if(axi4_mirror.axi_rvalid && axi4_mirror.axi_rready && axi4_mirror.axi_rlast)begin
@@ -140,24 +140,25 @@ always@(posedge axi4_mirror.axi_aclk,negedge axi4_mirror.axi_aresetn)
         else    timeout_error   <= timeout_error;
     end
 
-initial begin
-    fork
-        begin
-            @(posedge rd_overflow);
-            $display("%t,READ CMD OVERFLOW",$time);
-        end
-        begin
-            @(posedge wrong_id);
-            $display("%t,READ WRONG ID",$time);
-        end
-        begin
-            @(posedge timeout_error);
-            $display("%t,READ TIME OUT",$time);
-        end
-    join_any
-    // #(10us);
-    $display("%t,==========READ ERROR THREAD============= ",$time);
-    $finish;
+initial begin 
+    @(posedge rd_overflow);
+    $error("%t,READ CMD OVERFLOW",$time);
+    #(1us);
+    $stop;
+end
+
+initial begin 
+    @(posedge wrong_id);
+    $error("%t,READ WRONG ID,expect<%d> but<%d>",$time,chk_id,axi4_mirror.axi_rid);
+    #(1us);
+    $stop;
+end 
+
+initial begin 
+    @(posedge timeout_error);
+    $error("%t,READ TIME OUT",$time);
+    #(1us);
+    $stop;
 end
 
 endmodule

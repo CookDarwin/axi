@@ -47,6 +47,12 @@ initial begin
         $display("BEST_LAST TEST False!!!");
         $stop();
     end 
+
+    assert(PRIO != "ROBIN")
+    else begin 
+        $display("ROBIN TEST False!!!");
+        $stop();
+    end 
 end
 //--->> CHECK NUM <<-----------------
 // initial begin
@@ -91,8 +97,8 @@ assign rst_n    = m00.rst_n;
 //--->> PREPARE <<-------------------------------
 genvar KK;
 logic [NUM-1:0]         to_up_ready_array;
-logic [NUM-1:0]         from_up_vld_array;
-logic [NUM-1:0]         from_up_vld_array_mark_last;
+bit   [NUM-1:0]         from_up_vld_array;
+bit   [NUM-1:0]         from_up_vld_array_mark_last;
 logic [m00.DSIZE-1:0]   from_up_data;
 logic [m00.DSIZE-1:0]   from_up_data_array [NUM-1:0];
 logic                   from_down_ready;

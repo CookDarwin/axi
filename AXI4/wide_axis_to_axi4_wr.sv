@@ -5,7 +5,7 @@ _______________________________________
 descript:
 author : Cook.Darwin
 Version: VERA.0.0
-created: 2020-07-17 17:26:24 +0800
+created: xxxx.xx.xx
 madified:
 ***********************************************/
 `timescale 1ns/1ps
@@ -56,7 +56,7 @@ logic stream_en;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) split_out (.aclk(axis_in.aclk),.aresetn(axis_in.aresetn),.aclken(1'b1)) ;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) fifo_axis (.aclk(axi_wr.axi_aclk),.aresetn(axi_wr.axi_aresetn),.aclken(1'b1)) ;
 axi_stream_inf #(.DSIZE(axi_wr.IDSIZE + axi_wr.ASIZE + axi_wr.LSIZE)) id_add_len_in (.aclk(axi_wr.axi_aclk),.aresetn(axi_wr.axi_aresetn),.aclken(1'b1)) ;
-axi_inf #(.DSIZE(axi_wr.DSIZE),.IDSIZE(axi_wr.IDSIZE),.ASIZE(axi_wr.ASIZE),.LSIZE(axi_wr.LSIZE),.MODE(axi_wr.MODE),.ADDR_STEP(axi_wr.ADDR_STEP)) axi_wr_vcs_cp_108 (.axi_aclk(axi_wr.axi_aclk),.axi_aresetn(axi_wr.axi_aresetn)) ;
+axi_inf #(.DSIZE(axi_wr.DSIZE),.IDSIZE(axi_wr.IDSIZE),.ASIZE(axi_wr.ASIZE),.LSIZE(axi_wr.LSIZE),.MODE(axi_wr.MODE),.ADDR_STEP(axi_wr.ADDR_STEP)) axi_wr_vcs_cp_R1618 (.axi_aclk(axi_wr.axi_aclk),.axi_aresetn(axi_wr.axi_aresetn)) ;
 axi_stream_inf #(.DSIZE(axis_in.DSIZE)) pipe_axis (.aclk(axi_wr.axi_aclk),.aresetn(axi_wr.axi_aresetn),.aclken(1'b1)) ;
 //==========================================================================
 //-------- instance --------------------------------------------------------
@@ -91,16 +91,16 @@ independent_clock_fifo #(
 /* output */.full     (fifo_full                                                                )
 );
 axi4_wr_auxiliary_gen_without_resp axi4_wr_auxiliary_gen_without_resp_inst(
-/* output                        */.stream_en     (stream_en         ),
-/* axi_stream_inf.slaver         */.id_add_len_in (id_add_len_in     ),
-/* axi_inf.master_wr_aux_no_resp */.axi_wr_aux    (axi_wr_vcs_cp_108 )
+/* output                        */.stream_en     (stream_en           ),
+/* axi_stream_inf.slaver         */.id_add_len_in (id_add_len_in       ),
+/* axi_inf.master_wr_aux_no_resp */.axi_wr_aux    (axi_wr_vcs_cp_R1618 )
 );
 vcs_axi4_comptable #(
     .ORIGIN ("master_wr_aux_no_resp" ),
     .TO     ("master_wr"             )
-)vcs_axi4_comptable_axi_wr_aux_204_axi_wr_inst(
-/* input  */.origin (axi_wr_vcs_cp_108 ),
-/* output */.to     (axi_wr            )
+)vcs_axi4_comptable_axi_wr_aux_R1842_axi_wr_inst(
+/* input  */.origin (axi_wr_vcs_cp_R1618 ),
+/* output */.to     (axi_wr              )
 );
 axis_valve_with_pipe #(
     .MODE ("OUT" )

@@ -5,7 +5,7 @@ _______________________________________
 descript:
 author : Cook.Darwin
 Version: VERA.0.0
-creaded: 2019/1/8 
+creaded: 2019/1/8 上午11:42:26
 madified:
 ***********************************************/
 `timescale 1ns/1ps
@@ -27,6 +27,7 @@ logic                       full;
 
 assign  wr_en           = addr_inf.valid && addr_inf.ready;
 assign  addr_inf.ready  = !full;
+assign  wdata           = addr_inf.data;
 
 axi_stream_inf #(s00.DSIZE,s00.FreqM)   post_s00    (s00.aclk,s00.aresetn,s00.aclken);
 
@@ -56,9 +57,14 @@ axis_valve_with_pipe #(
 /*  axi_stream_inf.master  */  .axis_out    (post_s00       )
 );
 end else begin
-axis_direct axis_direct_inst(
-/*  axi_stream_inf.slaver  */ .slaver       (s00            ),
-/*  axi_stream_inf.master  */ .master       (post_s00       )
+// axis_direct axis_direct_inst(
+// /*  axi_stream_inf.slaver  */ .slaver       (s00            ),
+// /*  axi_stream_inf.master  */ .master       (post_s00       )
+// );
+axis_valve axis_valve_inst(
+/*  input                  */  .button          (!empty         ),          //[1] OPEN ; [0] CLOSE
+/*  axi_stream_inf.slaver  */  .axis_in         (s00            ),
+/*  axi_stream_inf.master  */  .axis_out        (post_s00       )
 );
 end
 endgenerate

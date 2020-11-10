@@ -53,10 +53,18 @@ assign s00[KK].axis_tready      = s00_data_inf[KK].ready;
 end
 endgenerate
 
-data_c_pipe_intc_M2S_verc #(
-    .PRIO   ("BEST_LAST"    ),   //BEST_ROBIN BEST_LAST ROBIN LAST WAIT_IDLE FORCE_ROBIN
+// data_c_pipe_intc_M2S_verc #(
+//     .PRIO   ("BEST_LAST"    ),   //BEST_ROBIN BEST_LAST ROBIN LAST WAIT_IDLE FORCE_ROBIN
+//     .NUM    (NUM            )
+// )data_c_pipe_intc_M2S_verc_inst(
+// /*  input [NUM-1:0]      */       .last         (last           ),             //ctrl prio
+// /*  data_inf_c.slaver    */       .s00          (s00_data_inf   ),//[NUM-1:0],
+// /*  data_inf_c.master    */       .m00          (m00_data_inf   )
+// );
+
+data_c_pipe_intc_M2S_best_last #(
     .NUM    (NUM            )
-)data_c_pipe_intc_M2S_verc_inst(
+)data_c_pipe_intc_M2S_best_last_inst(
 /*  input [NUM-1:0]      */       .last         (last           ),             //ctrl prio
 /*  data_inf_c.slaver    */       .s00          (s00_data_inf   ),//[NUM-1:0],
 /*  data_inf_c.master    */       .m00          (m00_data_inf   )

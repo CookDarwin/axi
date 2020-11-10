@@ -5,12 +5,14 @@ _______________________________________
 descript:
 author : Cook.Darwin
 Version: VERA.0.0
-created: 2020-07-17 17:26:24 +0800
+created: xxxx.xx.xx
 madified:
 ***********************************************/
 `timescale 1ns/1ps
 
-module axi4_dpram_cache (
+module axi4_dpram_cache #(
+    parameter  INIT_FILE = ""
+)(
     axi_inf.slaver   a_inf,
     axi_inf.slaver   b_inf
 );
@@ -60,7 +62,7 @@ data_inf_c_planer_A1 #(
 /* data_inf_c.master */.master    (b_datac_rd_rel_inf )
 );
 common_ram_wrapper #(
-    .INIT_FILE ("" )
+    .INIT_FILE (INIT_FILE )
 )common_ram_wrapper_inst(
 /* cm_ram_inf.slaver */.ram_inf (xram_inf )
 );

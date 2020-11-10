@@ -1,9 +1,11 @@
 require_hdl File.join(__dir__,'full_axi4_to_axis_partition_wr_rd.sv')
 # require_relative '../../wmy/NRISC_TDL/ram/cm_ram_inf_define.rb'
-require_relative '../common/common_ram_wrapper.rb'
+require_sdl 'common_ram_wrapper.rb'
+
 require_hdl File.join(__dir__,"./full_axi4_to_axis.sv")
 
 TdlBuild.axi4_dpram_cache(__dir__) do 
+    parameter.INIT_FILE     ''
     port.axi4.slaver    - 'a_inf'
     port.axi4.slaver    - 'b_inf'
 
@@ -97,7 +99,7 @@ TdlBuild.axi4_dpram_cache(__dir__) do
     end
 
     common_ram_wrapper.common_ram_wrapper_inst do |h|
-        h.param.INIT_FILE ''
+        h.param.INIT_FILE                   param.INIT_FILE
         h.port.cm_ram_inf.slaver.ram_inf    xram_inf  
     end
 
