@@ -1,5 +1,7 @@
 
 require_hdl 'axis_uncompress_A1.sv'
+require_hdl 'axi_stream_planer.sv'
+require_sdl 'axis_uncompress_verb.rb'
 
 TdlBuild.axis_rom_contect(__dir__) do 
     vcs_string(256).INIT_FILE   'template.coe'
@@ -12,14 +14,14 @@ TdlBuild.axis_rom_contect(__dir__) do
     port.axi_stream_inf.master  - 'b_rom_contect_inf' # DSIZE
 
     Initial do 
-        assert(a_axis_zip.DSIZE==b_axis_zip.DSIZE,["a_axis_zip.DSIZE<%0d> must equal b_axis_zip.DSIZE<%0d>"],[a_axis_zip.DSIZE,b_axis_zip.DSIZE])
-        assert(a_rom_contect_inf.DSIZE==b_rom_contect_inf.DSIZE, ["a_rom_contect_inf.DSIZE<%0d>==b_rom_contect_inf.DSIZE<%0d>"],[a_rom_contect_inf.DSIZE,b_rom_contect_inf.DSIZE])
+        assert(a_axis_zip.DSIZE==b_axis_zip.DSIZE,"a_axis_zip.DSIZE<%0d> must equal b_axis_zip.DSIZE<%0d>",a_axis_zip.DSIZE,b_axis_zip.DSIZE)
+        assert(a_rom_contect_inf.DSIZE==b_rom_contect_inf.DSIZE, "a_rom_contect_inf.DSIZE<%0d>==b_rom_contect_inf.DSIZE<%0d>",a_rom_contect_inf.DSIZE,b_rom_contect_inf.DSIZE)
     end
 
     a_axis_zip.copy( dsize: a_axis_zip.DSIZE/2, name: 'a_axis_unzip')
     b_axis_zip.copy( dsize: b_axis_zip.DSIZE/2, name: 'b_axis_unzip')
 
-    axis_uncompress_A1.axis_uncompress_A1_ainst do  |h|#(
+    axis_uncompress_verb.axis_uncompress_verb_ainst do  |h|#(
         h.param.ASIZE         a_axis_zip.DSIZE/2        #//ASIZE + LSIZE = AXIS DATA WIDTH
         h.param.LSIZE         a_axis_zip.DSIZE/2
         h.param.STEP          param.STEP
@@ -27,7 +29,7 @@ TdlBuild.axis_rom_contect(__dir__) do
         h.axi_stream_inf.master.axis_unzip      a_axis_unzip                   #//ASIZE
     end
 
-    axis_uncompress_A1.axis_uncompress_A1_binst do  |h|#(
+    axis_uncompress_verb.axis_uncompress_verb_binst do  |h|#(
         h.param.ASIZE         a_axis_zip.DSIZE/2        #//ASIZE + LSIZE = AXIS DATA WIDTH
         h.param.LSIZE         a_axis_zip.DSIZE/2
         h.param.STEP          param.STEP

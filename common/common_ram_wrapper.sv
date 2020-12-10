@@ -23,11 +23,11 @@ import SystemPkg::*;//------<< EX CODE >>-------------------
 //==========================================================================
 //-------- define ----------------------------------------------------------
 logic [12-1:0]  addra ;
-logic [36-1:0]  dina ;
-logic [36-1:0]  douta ;
+logic [((ram_inf.DSIZE<36)? 36 : ram_inf.DSIZE)-1:0]  dina ;
+logic [((ram_inf.DSIZE<36)? 36 : ram_inf.DSIZE)-1:0]  douta ;
 logic [12-1:0]  addrb ;
-logic [36-1:0]  dinb ;
-logic [36-1:0]  doutb ;
+logic [((ram_inf.DSIZE<36)? 36 : ram_inf.DSIZE)-1:0]  dinb ;
+logic [((ram_inf.DSIZE<36)? 36 : ram_inf.DSIZE)-1:0]  doutb ;
 
 //==========================================================================
 //-------- instance --------------------------------------------------------
@@ -62,11 +62,21 @@ assign  addrb = ram_inf.addrb;
 assign  dinb = ram_inf.dib;
 
 always_ff@(posedge ram_inf.clka) begin 
-     ram_inf.doa <= douta[32:0];
+    if( ram_inf.DSIZE<34)begin
+         ram_inf.doa <= douta[32:0];
+    end
+    else begin
+         ram_inf.doa <= douta;
+    end
 end
 
 always_ff@(posedge ram_inf.clkb) begin 
-     ram_inf.dob <= doutb[32:0];
+    if( ram_inf.DSIZE<34)begin
+         ram_inf.dob <= doutb[32:0];
+    end
+    else begin
+         ram_inf.dob <= doutb;
+    end
 end
 
 endmodule

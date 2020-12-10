@@ -16,8 +16,8 @@ TdlBuild.axis_rom_contect_sim(__dir__) do
     port.axi_stream_inf.master  - 'b_rom_contect_inf' # DSIZE
 
     Initial do 
-        assert(a_axis_zip.DSIZE==b_axis_zip.DSIZE,["a_axis_zip.DSIZE<%0d> must equal b_axis_zip.DSIZE<%0d>"],[a_axis_zip.DSIZE,b_axis_zip.DSIZE])
-        assert(a_rom_contect_inf.DSIZE==b_rom_contect_inf.DSIZE, ["a_rom_contect_inf.DSIZE<%0d>==b_rom_contect_inf.DSIZE<%0d>"],[a_rom_contect_inf.DSIZE,b_rom_contect_inf.DSIZE])
+        assert(a_axis_zip.DSIZE==b_axis_zip.DSIZE,"a_axis_zip.DSIZE<%0d> must equal b_axis_zip.DSIZE<%0d>",a_axis_zip.DSIZE,b_axis_zip.DSIZE)
+        assert(a_rom_contect_inf.DSIZE==b_rom_contect_inf.DSIZE, "a_rom_contect_inf.DSIZE<%0d>==b_rom_contect_inf.DSIZE<%0d>",a_rom_contect_inf.DSIZE,b_rom_contect_inf.DSIZE)
     end
 
     a_axis_zip.copy( dsize: a_axis_zip.DSIZE/2, name: 'a_axis_unzip')

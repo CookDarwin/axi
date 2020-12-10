@@ -25,11 +25,11 @@ module axis_rom_contect_sim #(
 //==========================================================================
 //-------- define ----------------------------------------------------------
 
-axi_stream_inf #(.DSIZE( a_axis_zip.DSIZE/2)) a_axis_unzip (.aclk(a_axis_zip.aclk),.aresetn(a_axis_zip.aresetn),.aclken(1'b1)) ;
-axi_stream_inf #(.DSIZE( b_axis_zip.DSIZE/2)) b_axis_unzip (.aclk(b_axis_zip.aclk),.aresetn(b_axis_zip.aresetn),.aclken(1'b1)) ;
+axi_stream_inf #(.DSIZE( a_axis_zip.DSIZE/2),.USIZE(1)) a_axis_unzip (.aclk(a_axis_zip.aclk),.aresetn(a_axis_zip.aresetn),.aclken(1'b1)) ;
+axi_stream_inf #(.DSIZE( b_axis_zip.DSIZE/2),.USIZE(1)) b_axis_unzip (.aclk(b_axis_zip.aclk),.aresetn(b_axis_zip.aresetn),.aclken(1'b1)) ;
 cm_ram_inf #(.DSIZE(a_rom_contect_inf.DSIZE),.RSIZE(a_axis_zip.DSIZE),.MSIZE(1)) xram_inf();
-axi_stream_inf #(.DSIZE(a_rom_contect_inf.DSIZE+ a_axis_zip.DSIZE/2)) a_rom_contect_inf_pre (.aclk(a_rom_contect_inf.aclk),.aresetn(a_rom_contect_inf.aresetn),.aclken(1'b1)) ;
-axi_stream_inf #(.DSIZE(b_rom_contect_inf.DSIZE+ b_axis_zip.DSIZE/2)) b_rom_contect_inf_pre (.aclk(b_rom_contect_inf.aclk),.aresetn(b_rom_contect_inf.aresetn),.aclken(1'b1)) ;
+axi_stream_inf #(.DSIZE(a_rom_contect_inf.DSIZE+ a_axis_zip.DSIZE/2),.USIZE(1)) a_rom_contect_inf_pre (.aclk(a_rom_contect_inf.aclk),.aresetn(a_rom_contect_inf.aresetn),.aclken(1'b1)) ;
+axi_stream_inf #(.DSIZE(b_rom_contect_inf.DSIZE+ b_axis_zip.DSIZE/2),.USIZE(1)) b_rom_contect_inf_pre (.aclk(b_rom_contect_inf.aclk),.aresetn(b_rom_contect_inf.aresetn),.aclken(1'b1)) ;
 //==========================================================================
 //-------- instance --------------------------------------------------------
 axis_uncompress_A1 #(

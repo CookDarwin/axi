@@ -10,7 +10,7 @@ TdlBuild.data_inf_partition(__dir__) do
     port.data_inf_c.master  - 'wait_last_inf'
 
     Initial do 
-        assert(data_in.DSIZE+4 == data_out.DSIZE,["data_in.DSIZE<%d> != data_out.DSIZE<%d>"],[data_in.DSIZE,data_out.DSIZE])
+        assert(data_in.DSIZE+4 == data_out.DSIZE,"data_in.DSIZE<%d> != data_out.DSIZE<%d>",data_in.DSIZE,data_out.DSIZE)
     end
 
     enum('IDLE','LOCK','Px','Pl','HOLD','WAT_PP','DONE','WAIT')    - 'ps'

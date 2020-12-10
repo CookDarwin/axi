@@ -3,8 +3,9 @@ interface axi_stream_inf #(
     parameter DSIZE     = 32,
     parameter real FreqM    = 1,
     parameter KSIZE     = (DSIZE/8 > 0)? DSIZE/8 : 1,
-    parameter CSIZE     = 32        //cnt size
+    parameter CSIZE     = 32,        //cnt size
     // parameter KSIZE   = 1
+    parameter USIZE     = 1
 )(
     input bit   aclk ,
     input bit   aresetn,
@@ -16,7 +17,7 @@ interface axi_stream_inf #(
 logic[DSIZE-1:0]       axis_tdata    ;
 logic                  axis_tvalid   ;
 logic                  axis_tready   ;
-logic                  axis_tuser    ;
+logic[USIZE-1:0]       axis_tuser    ;
 logic                  axis_tlast    ;
 logic[KSIZE-1:0]       axis_tkeep    ;
 logic[CSIZE-1:0]       axis_tcnt     ;

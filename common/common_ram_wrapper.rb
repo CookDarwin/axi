@@ -6,17 +6,18 @@ TdlBuild.common_ram_wrapper(__dir__) do
     self.ex_up_code ||= ''
     self.ex_up_code += 'import SystemPkg::*;'
     
+    localparam_DSIZE     = "((ram_inf.DSIZE<36)? 36 : ram_inf.DSIZE)".to_nq
     logic[11+1]         - 'addra'      
     # logic[32+1]         - 'dina'       
     # logic[32+1]         - 'douta'      
-    logic[36]         - 'dina'       
-    logic[36]         - 'douta' 
+    logic[localparam_DSIZE]  - 'dina'       
+    logic[localparam_DSIZE]  - 'douta' 
     
     logic[11+1]         - 'addrb'
     # logic[32+1]         - 'dinb'
     # logic[32+1]         - 'doutb'
-    logic[36]         - 'dinb'
-    logic[36]         - 'doutb'
+    logic[localparam_DSIZE]  - 'dinb'
+    logic[localparam_DSIZE]  - 'doutb'
     
     Assign do 
         addra       <= ram_inf.addra
@@ -51,10 +52,20 @@ TdlBuild.common_ram_wrapper(__dir__) do
     end
     
     always_ff(posedge: ram_inf.clka) do 
-        ram_inf.doa <= douta[32,0]
+        IF ram_inf.DSIZE < 34 do
+            ram_inf.doa <= douta[32,0]
+        end
+        ELSE do 
+            ram_inf.doa <= douta
+        end
     end
     
     always_ff(posedge: ram_inf.clkb) do 
-        ram_inf.dob <= doutb[32,0]
+        IF ram_inf.DSIZE < 34 do 
+            ram_inf.dob <= doutb[32,0]
+        end
+        ELSE do 
+            ram_inf.dob <= doutb
+        end
     end
 end

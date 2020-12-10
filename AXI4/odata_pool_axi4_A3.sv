@@ -76,7 +76,8 @@ axi4_rd_auxiliary_gen_A1 axi4_rd_auxiliary_gen_inst(
 /*    axi_inf.master_rd_aux     */  .axi_rd_aux     (`axi_master_vcs_cpt            )
 );
 
-assign  addr_len_inf.axis_tvalid    = !fifo_empty && (fifo_size[axi_master.LSIZE:0]!='0);
+// assign  addr_len_inf.axis_tvalid    = !fifo_empty && (fifo_size[axi_master.LSIZE:0]!='0);
+assign  addr_len_inf.axis_tvalid    = !fifo_empty;
 assign  fifo_rd_en                  = addr_len_inf.axis_tready;
 
 //--->> FIFO

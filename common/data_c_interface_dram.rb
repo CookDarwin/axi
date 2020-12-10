@@ -14,10 +14,10 @@ TdlBuild.data_c_interface_dram(__dir__) do
     port.cm_ram_inf.master           - 'ram_inf'
 
     Initial do 
-        assert(rd_wr_ram_inf.DSIZE == (param.DSIZE+param.ASIZE+1),["rd_wr_ram_inf.DSIZE[%d] != DSIZE[%d]+ASIZE[%d]+1"],[rd_wr_ram_inf.DSIZE,param.DSIZE,param.ASIZE])
-        assert(rd_ram_rel_inf.DSIZE == (param.DSIZE+param.ASIZE),["rd_ram_rel_inf.DSIZE[%d] != DSIZE[%d]+ASIZE[%d]"],[rd_ram_rel_inf.DSIZE,param.DSIZE,param.ASIZE])
-        assert(ram_inf.DSIZE==param.DSIZE,["ram_inf.DSIZE[%d] != DSIZE[%d]"],[ram_inf.DSIZE, param.DSIZE ])
-        assert(ram_inf.RSIZE==param.ASIZE,["ram_inf.RSIZE[%d] != RSIZE[%d]"],[ram_inf.RSIZE, param.ASIZE ])
+        assert(rd_wr_ram_inf.DSIZE == (param.DSIZE+param.ASIZE+1),"rd_wr_ram_inf.DSIZE[%d] != DSIZE[%d]+ASIZE[%d]+1",rd_wr_ram_inf.DSIZE,param.DSIZE,param.ASIZE)
+        assert(rd_ram_rel_inf.DSIZE == (param.DSIZE+param.ASIZE),"rd_ram_rel_inf.DSIZE[%d] != DSIZE[%d]+ASIZE[%d]",rd_ram_rel_inf.DSIZE,param.DSIZE,param.ASIZE)
+        assert(ram_inf.DSIZE==param.DSIZE,"ram_inf.DSIZE[%d] != DSIZE[%d]",ram_inf.DSIZE, param.DSIZE )
+        assert(ram_inf.RSIZE==param.ASIZE,"ram_inf.RSIZE[%d] != RSIZE[%d]",ram_inf.RSIZE, param.ASIZE )
     end
 
     Assign do 

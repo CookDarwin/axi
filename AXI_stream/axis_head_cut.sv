@@ -27,7 +27,7 @@ initial begin
     end
 end
 
-localparam DSIZE = slaver.DSIZE;
+// localparam DSIZE = slaver.DSIZE;
 
 axi_stream_inf #(slaver.DSIZE) post_slaver (slaver.aclk,slaver.aresetn,slaver.aclken);
 `include "define_macro.sv"
@@ -40,7 +40,7 @@ axis_direct axis_direct_inst(
 );
 end else if(LEN <=6) begin
 parse_big_field_table_A2 #(
-    .DSIZE          (DSIZE     ),
+    .DSIZE          (slaver.DSIZE     ),
     .FIELD_LEN      (LEN       )     //MAX 16*8
 )parse_big_field_table_A2_inst(
 /*  input                         */   .enable      (1'b1),

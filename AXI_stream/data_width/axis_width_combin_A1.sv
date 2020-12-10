@@ -186,8 +186,8 @@ end
 
 //--- >> KEEP SIGNEL <<---------
 `define KSIZE  slim_axis.KSIZE
-localparam WIDE_LOG8 = $clog2(wide_axis.DSIZE)%3 == 0;
-localparam SLIM_LOG8 = $clog2(slim_axis.DSIZE)%3 == 0;
+localparam WIDE_LOG8 = wide_axis.DSIZE%8 == 0;
+localparam SLIM_LOG8 = slim_axis.DSIZE%8 == 0;
 localparam WIDE_LOG2 = wide_axis.DSIZE == 2**$clog2(wide_axis.DSIZE);
 localparam SLIM_LOG2 = slim_axis.DSIZE == 2**$clog2(slim_axis.DSIZE);
 localparam SLIM_L8   = slim_axis.DSIZE >= 8;
