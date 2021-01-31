@@ -8,6 +8,8 @@ mentor:
 
 tdl_paths:
     - ./AXI_stream
+    - ./AXI_stream/stream_cache
     - ./AXI4
+    - ./AXI4/packet_partition
     - ./common
     - ./data_interface

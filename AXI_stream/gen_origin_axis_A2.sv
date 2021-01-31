@@ -83,9 +83,13 @@ always@(posedge clock/*,negedge rst_n*/)
         SEND_DATA:begin
             if(enable && ready)
                     axis_out.axis_tdata     <= start;
-            else if(axis_out.axis_tvalid && axis_out.axis_tready && axis_out.aclken)
-                    axis_out.axis_tdata     <= axis_out.axis_tdata + 1'b1;
-            else    axis_out.axis_tdata     <= axis_out.axis_tdata;
+            else if(axis_out.axis_tvalid && axis_out.axis_tready && axis_out.aclken)begin 
+                    // axis_out.axis_tdata     <= axis_out.axis_tdata + 1'b1;
+                     if(MODE == "RANGE")
+                            axis_out.axis_tdata     <= axis_out.axis_tdata + 1'b1;
+                    else    axis_out.axis_tdata     <= start;
+            end else    
+                    axis_out.axis_tdata     <= axis_out.axis_tdata;
         end
         default:;
         endcase

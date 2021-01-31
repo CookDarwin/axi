@@ -12,14 +12,14 @@ TdlBuild.common_ram_sim_wrapper(__dir__) do
     logic[11+1]         - 'addra'      
     # logic[32+1]         - 'dina'       
     # logic[32+1]         - 'douta'      
-    logic[36]         - 'dina'       
-    logic[36]         - 'douta' 
+    logic[ram_inf.DSIZE]         - 'dina'       
+    logic[ram_inf.DSIZE]         - 'douta' 
     
     logic[11+1]         - 'addrb'
     # logic[32+1]         - 'dinb'
     # logic[32+1]         - 'doutb'
-    logic[36]         - 'dinb'
-    logic[36]         - 'doutb'
+    logic[ram_inf.DSIZE]         - 'dinb'
+    logic[ram_inf.DSIZE]         - 'doutb'
     
     Assign do 
         addra       <= ram_inf.addra
@@ -57,10 +57,10 @@ TdlBuild.common_ram_sim_wrapper(__dir__) do
     end
     
     always_ff(posedge: ram_inf.clka) do 
-        ram_inf.doa <= douta[32,0]
+        ram_inf.doa <= douta[ram_inf.DSIZE-1,0]
     end
     
     always_ff(posedge: ram_inf.clkb) do 
-        ram_inf.dob <= doutb[32,0]
+        ram_inf.dob <= doutb[ram_inf.DSIZE-1,0]
     end
 end

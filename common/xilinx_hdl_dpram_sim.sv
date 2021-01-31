@@ -32,8 +32,10 @@ module xilinx_hdl_dpram_sim #(
   output [(NB_COL*COL_WIDTH)-1:0] doutb  // Port B RAM output data
 );
 
+test_write_mem test_write_mem_inst();
+
   // reg [(NB_COL*COL_WIDTH)-1:0] BRAM [RAM_DEPTH-1:0];
-  bit [(NB_COL*COL_WIDTH)-1:0] BRAM [RAM_DEPTH-1:0];
+  logic [(NB_COL*COL_WIDTH)-1:0] BRAM [RAM_DEPTH-1:0];
   reg [(NB_COL*COL_WIDTH)-1:0] ram_data_a = {(NB_COL*COL_WIDTH){1'b0}};
   reg [(NB_COL*COL_WIDTH)-1:0] ram_data_b = {(NB_COL*COL_WIDTH){1'b0}};
 
@@ -46,11 +48,36 @@ module xilinx_hdl_dpram_sim #(
   endgenerate
 
 genvar KK;
+integer fid [FNUM-1:0];
+int faddr [FNUM-1:0];
+logic[ ( (NB_COL*COL_WIDTH)/32 + ((NB_COL*COL_WIDTH)%32 != 0)) * 32  -1 :0] fdata;
+logic[31:0] Fbram [RAM_DEPTH-1:0][0:( (NB_COL*COL_WIDTH)/32 + ((NB_COL*COL_WIDTH)%32 != 0))-1];
+int ii [FNUM-1:0];
 generate
     for(KK=0;KK<FNUM;KK++)begin 
-      always@(posedge load_files[KK])begin 
-          $readmemh(init_files[KK], BRAM, 0, RAM_DEPTH-1);
-      end
+        always@(posedge load_files[KK])begin 
+            $readmemh(init_files[KK], BRAM, 0, RAM_DEPTH-1);
+            // $readmemh(init_files[KK], Fbram, 0, RAM_DEPTH-1);
+            // for(ii[KK]=0;ii[KK]<RAM_DEPTH;ii[KK]++)begin
+            //     fdata   = {>>{Fbram[ii[KK]][0:( (NB_COL*COL_WIDTH)/32 + ((NB_COL*COL_WIDTH)%32 != 0))-1]}};
+            //     BRAM[ii[KK]] = fdata[0 +: (NB_COL*COL_WIDTH)];
+            // end
+        //     fid[KK] = $fopen(init_files[KK],"r");
+        //     if(fid[KK] != 0)begin
+        //         for(ii[KK]=0;ii[KK]<RAM_DEPTH;ii[KK]++)begin
+        //             if($feof(fid[KK]))begin
+        //                 $display("EOF<%0d>:%0s\n",ii[KK],init_files[KK]);
+        //                 $fclose(fid[KK]);
+        //                 break;
+        //             end
+        //             $fscanf(fid[KK],"@%h %16h\n",faddr[KK],fdata[KK]);
+        //                 // $display("SCAN DONE<%0d>:%0s\n",ii[KK],init_files[KK]);
+        //                 // $fclose(fid[KK]); 
+        //                 // break;
+        //             BRAM[faddr[KK]] = fdata[KK];
+        //         end
+        //     end
+        end
     end
 endgenerate
 
