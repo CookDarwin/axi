@@ -163,7 +163,13 @@ TdlBuild.axis_head_cut_verc(__dir__) do
         h.param.SNUM                param.DX
         h.input['$clog2(SNUM+1)'].shift_sel     shift_sel # // sync axis_in.axis_tvalid
         h.port.axis.slaver.axis_in              origin_inf_ss_E0    
-        h.port.axis.master.axis_out             out_inf.branch    
+        h.port.axis.master.axis_out             origin_inf.copy(name: 'origin_inf_ss_E0_CH')
+    end
+
+    axis_head_cut_verb.last_cut_inst do |h|
+        h.input[16].length              16.d1
+        h.port.axis.slaver.axis_in      origin_inf_ss_E0_CH
+        h.port.axis.master.axis_out     out_inf.branch  
     end
         
 end

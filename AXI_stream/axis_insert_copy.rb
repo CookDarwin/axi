@@ -21,16 +21,32 @@ TdlBuild.axis_insert_copy(__dir__) do
         in_inf_valve.axis_tvalid    <= in_inf.axis_tvalid | insert_tri
         in_inf_valve.axis_tuser     <= in_inf.axis_tuser 
         in_inf_valve.axis_tkeep     <= in_inf.axis_tkeep 
-        in_inf.axis_tready          <= in_inf.axis_tready & (~insert_tri)
+        in_inf.axis_tready          <= in_inf_valve.axis_tready & (~insert_tri)
         in_inf_valve.axis_tlast     <= in_inf.axis_tlast & (~insert_tri)
     end
+
+    # logic   - 'insert_tri_zero_en'
 
     always_ff(posedge.clock, negedge.rst_n) do 
         IF ~rst_n do 
             insert_tri <= 1.b0 
+            # insert_tri_zero_en  <= 1.b1
         end 
         ELSE do 
-            insert_tri <= (in_inf_valve.axis_tcnt >= insert_seed).and(in_inf_valve.vld_rdy).and(in_inf_valve.axis_tcnt < insert_seed + insert_len)
+            IF insert_seed == 0.A do 
+                IF in_inf.vld_rdy_last do 
+                    insert_tri  <= 1.b1 
+                end
+                ELSIF in_inf.vld_rdy do 
+                    insert_tri  <= (in_inf_valve.axis_tcnt >= insert_len - 1.b1 )
+                end
+                ELSE do 
+                    insert_tri  <= insert_tri
+                end
+            end
+            ELSE do 
+                insert_tri <= (in_inf_valve.axis_tcnt >= insert_seed - 1.b1 ).and(in_inf_valve.vld_rdy).and(in_inf_valve.axis_tcnt < insert_seed + insert_len - 1.b1).and( ~in_inf.axis_tlast)
+            end
         end
     end
 

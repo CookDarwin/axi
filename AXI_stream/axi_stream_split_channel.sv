@@ -53,6 +53,58 @@ axis_direct  axis_direct_end_inf_inst0 (
 /*  axi_stream_inf.slaver*/ .slaver (sub_origin_inf[1]),
 /*  axi_stream_inf.master*/ .master (sub_end_inf[0])
 );
+//-------- CLOCKs Total 3 ----------------------
+//--->> CheckClock <<----------------
+logic cc_done_7,cc_same_7;
+integer cc_afreq_7,cc_bfreq_7;
+ClockSameDomain CheckPClock_inst_7(
+/*  input         */      .aclk     (origin_inf.aclk        ),
+/*  input         */      .bclk     (first_inf.aclk         ),
+/*  output logic  */      .done     (cc_done_7),
+/*  output logic  */      .same     (cc_same_7),
+/*  output integer */     .aFreqK   (cc_afreq_7),
+/*  output integer */     .bFreqK   (cc_bfreq_7)
+);
+
+initial begin
+    wait(cc_done_7);
+    assert(cc_same_7)
+    else begin
+        $error("--- Error : `axi_stream_split_channel` clock is not same, origin_inf.aclk< %0f M> != first_inf.aclk<%0f M>",1000000.0/cc_afreq_7, 1000000.0/cc_bfreq_7);
+        repeat(10)begin 
+            @(posedge origin_inf.aclk);
+        end
+        $stop;
+    end
+end
+//---<< CheckClock >>----------------
+
+//--->> CheckClock <<----------------
+logic cc_done_8,cc_same_8;
+integer cc_afreq_8,cc_bfreq_8;
+ClockSameDomain CheckPClock_inst_8(
+/*  input         */      .aclk     (origin_inf.aclk        ),
+/*  input         */      .bclk     (end_inf.aclk           ),
+/*  output logic  */      .done     (cc_done_8),
+/*  output logic  */      .same     (cc_same_8),
+/*  output integer */     .aFreqK   (cc_afreq_8),
+/*  output integer */     .bFreqK   (cc_bfreq_8)
+);
+
+initial begin
+    wait(cc_done_8);
+    assert(cc_same_8)
+    else begin
+        $error("--- Error : `axi_stream_split_channel` clock is not same, origin_inf.aclk< %0f M> != end_inf.aclk<%0f M>",1000000.0/cc_afreq_8, 1000000.0/cc_bfreq_8);
+        repeat(10)begin 
+            @(posedge origin_inf.aclk);
+        end
+        $stop;
+    end
+end
+//---<< CheckClock >>----------------
+
+//======== CLOCKs Total 3 ======================
 assign  clock = origin_inf.aclk;
 assign  rst_n = origin_inf.aresetn;
 

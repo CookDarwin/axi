@@ -19,6 +19,8 @@ module fifo_wr_rd_mark(
     output logic    fifo_rst
 );
 
+import SystemPkg::*;
+
 logic rd_rst_Q,wr_rst_Q;
 
 xilinx_reset_sync xilinx_reset_sync_winst (
@@ -64,22 +66,28 @@ always@(posedge rd_clk,posedge rd_rst_Q)
     end
 
 // logic   en_wr_en,en_rd_en;
+// generate 
+//     if(SIM=="FALSE" || SIM=="OFF")begin 
+        always@(posedge wr_clk,posedge wr_rst_Q)
+            if(wr_rst_Q) en_wr_en    <= 1'b0;
+            else begin
+                if(wcnt == 3'b111)
+                        en_wr_en    <= 1'b1;
+                else    en_wr_en    <= 1'b0;
+            end
 
-always@(posedge wr_clk,posedge wr_rst_Q)
-    if(wr_rst_Q) en_wr_en    <= 1'b0;
-    else begin
-        if(wcnt == 3'b111)
-                en_wr_en    <= 1'b1;
-        else    en_wr_en    <= 1'b0;
-    end
-
-always@(posedge rd_clk,posedge rd_rst_Q)
-    if(rd_rst_Q) en_rd_en    <= 1'b0;
-    else begin
-        if(rcnt == 3'b111)
-                en_rd_en    <= 1'b1;
-        else    en_rd_en    <= 1'b0;
-    end
+        always@(posedge rd_clk,posedge rd_rst_Q)
+            if(rd_rst_Q) en_rd_en    <= 1'b0;
+            else begin
+                if(rcnt == 3'b111)
+                        en_rd_en    <= 1'b1;
+                else    en_rd_en    <= 1'b0;
+            end
+//     end else begin 
+//         assign en_wr_en = 1'b1;
+//         assign en_rd_en = 1'b1;
+//     end 
+// endgenerate
 
 assign fifo_rst = rd_rst_Q || wr_rst_Q;
 

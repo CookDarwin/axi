@@ -38,7 +38,7 @@ common_fifo #(
 )common_fifo_head_bytesx_inst(
 /* input  */.clock (clock                                                                                          ),
 /* input  */.rst_n (rst_n                                                                                          ),
-/* input  */.wdata (insert_seed                                                                                    ),
+/* input  */.wdata (split_len                                                                                      ),
 /* input  */.wr_en ((origin_inf.axis_tcnt == '0) && origin_inf.axis_tvalid && origin_inf.axis_tready               ),
 /* output */.rdata (next_split_len                                                                                 ),
 /* input  */.rd_en (origin_inf_insert.axis_tvalid && origin_inf_insert.axis_tready && origin_inf_insert.axis_tlast ),

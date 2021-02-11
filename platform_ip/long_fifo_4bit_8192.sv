@@ -24,6 +24,7 @@ module long_fifo_4bit_8192 #(
     output              empty
 );
 
+import SystemPkg::*;
 
 initial begin
     if(LENGTH > 8192)begin
@@ -56,21 +57,28 @@ always@(posedge rd_clk,posedge rd_rst)
 
 logic   en_wr_en,en_rd_en;
 
-always@(posedge wr_clk,posedge wr_rst)
-    if(wr_rst) en_wr_en    <= 1'b0;
-    else begin
-        if(wcnt == 3'b111)
-                en_wr_en    <= 1'b1;
-        else    en_wr_en    <= en_wr_en;
-    end
+// generate 
+//     if(SIM == "FALSE" || SIM == "OFF") begin 
+        always@(posedge wr_clk,posedge wr_rst)
+            if(wr_rst) en_wr_en    <= 1'b0;
+            else begin
+                if(wcnt == 3'b111)
+                        en_wr_en    <= 1'b1;
+                else    en_wr_en    <= en_wr_en;
+            end
 
-always@(posedge rd_clk,posedge rd_rst)
-    if(rd_rst) en_rd_en    <= 1'b0;
-    else begin
-        if(rcnt == 3'b111)
-                en_rd_en    <= 1'b1;
-        else    en_rd_en    <= en_rd_en;
-    end
+        always@(posedge rd_clk,posedge rd_rst)
+            if(rd_rst) en_rd_en    <= 1'b0;
+            else begin
+                if(rcnt == 3'b111)
+                        en_rd_en    <= 1'b1;
+                else    en_rd_en    <= en_rd_en;
+            end
+//     end else begin 
+//         assign en_wr_en = 1'b1;
+//         assign en_rd_en = 1'b1;
+//     end 
+// endgenerate
 
 logic  RST;
 

@@ -50,11 +50,15 @@ fifo_wr_rd_mark fifo_wr_rd_mark_inst(
 /*  input        */   .wr_clk       (wr_clk ),
 /*  input        */   .rd_rst       (rd_rst ),
 /*  input        */   .wr_rst       (wr_rst ),
-/*  output logic */   .en_rd_en     (en_rd_en   ),
-/*  output logic */   .en_wr_en     (en_wr_en   ),
+// /*  output logic */   .en_rd_en     (en_rd_en   ),
+// /*  output logic */   .en_wr_en     (en_wr_en   ),
+/*  output logic */   .en_rd_en     (   ),
+/*  output logic */   .en_wr_en     (   ),
 /*  output logic */   .fifo_rst     (RST        )
 );
 
+assign en_rd_en = 1'b1;
+assign en_wr_en = 1'b1;
 
 genvar KK;
 generate

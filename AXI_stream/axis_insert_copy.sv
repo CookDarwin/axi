@@ -38,7 +38,7 @@ assign  in_inf_valve.axis_tdata = in_inf.axis_tdata;
 assign  in_inf_valve.axis_tvalid = ( in_inf.axis_tvalid|insert_tri);
 assign  in_inf_valve.axis_tuser = in_inf.axis_tuser;
 assign  in_inf_valve.axis_tkeep = in_inf.axis_tkeep;
-assign  in_inf.axis_tready = ( in_inf.axis_tready&~insert_tri);
+assign  in_inf.axis_tready = ( in_inf_valve.axis_tready&~insert_tri);
 assign  in_inf_valve.axis_tlast = ( in_inf.axis_tlast&~insert_tri);
 
 always_ff@(posedge clock,negedge rst_n) begin 
@@ -46,7 +46,20 @@ always_ff@(posedge clock,negedge rst_n) begin
          insert_tri <= 1'b0;
     end
     else begin
-         insert_tri <= ( in_inf_valve.axis_tcnt>=insert_seed&& in_inf_valve.axis_tvalid && in_inf_valve.axis_tready && ( in_inf_valve.axis_tcnt<( insert_seed+insert_len)));
+        if( insert_seed=='0)begin
+            if(in_inf.axis_tvalid && in_inf.axis_tready && in_inf.axis_tlast)begin
+                 insert_tri <= 1'b1;
+            end
+            else if(in_inf.axis_tvalid && in_inf.axis_tready)begin
+                 insert_tri <= ( in_inf_valve.axis_tcnt>=( insert_len-1'b1));
+            end
+            else begin
+                 insert_tri <= insert_tri;
+            end
+        end
+        else begin
+             insert_tri <= ( in_inf_valve.axis_tcnt>=( insert_seed-1'b1)&& in_inf_valve.axis_tvalid && in_inf_valve.axis_tready && ( in_inf_valve.axis_tcnt<( insert_seed+insert_len- 1'b1))&& ~in_inf.axis_tlast);
+        end
     end
 end
 

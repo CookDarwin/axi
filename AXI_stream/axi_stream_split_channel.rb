@@ -7,6 +7,8 @@ TdlBuild.axi_stream_split_channel(__dir__) do
     port.axis.master        - 'first_inf'
     port.axis.master        - 'end_inf'
 
+    same_clock_domain(origin_inf, first_inf, end_inf)
+
     origin_inf.clock_reset_taps('clock','rst_n')
 
     logic   - 'addr'

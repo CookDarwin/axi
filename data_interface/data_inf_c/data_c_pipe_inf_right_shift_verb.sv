@@ -123,13 +123,13 @@ always@(posedge clock,negedge rst_n)
         VD_CN_EM_BUF:
             if(buffer_vld)begin
                 // {master.data,shift_data} <= {shift_data,buffer_data};
-                // {master.data,shift_data}    <= zoz_data[1][SHIFT_BYTE_BIT*SNUM*2+slaver.DSIZE-1 - (SNUM-shift_sel)*SHIFT_BYTE_BIT -: (SHIFT_BYTE_BIT*SNUM+slaver.DSIZE) ];
-                {master.data,shift_data}   <= {x_shift_data, buffer_data };
+                {master.data,shift_data}    <= zoz_data[1][SHIFT_BYTE_BIT*SNUM*2+slaver.DSIZE-1 - (SNUM-shift_sel)*SHIFT_BYTE_BIT -: (SHIFT_BYTE_BIT*SNUM+slaver.DSIZE) ];
+                // {master.data,shift_data}   <= {x_shift_data, buffer_data };
                 ex_out                   <= ex_buffer;
             end else if(slaver_vld_rdy)begin
                 // {master.data,shift_data} <= {shift_data,slaver.data};
-                // {master.data,shift_data} <= zoz_data[0][SHIFT_BYTE_BIT*SNUM*2+slaver.DSIZE-1 - (SNUM-shift_sel)*SHIFT_BYTE_BIT -: (SHIFT_BYTE_BIT*SNUM+slaver.DSIZE) ];
-                {master.data,shift_data}   <= {x_shift_data, slaver.data };
+                {master.data,shift_data} <= zoz_data[0][SHIFT_BYTE_BIT*SNUM*2+slaver.DSIZE-1 - (SNUM-shift_sel)*SHIFT_BYTE_BIT -: (SHIFT_BYTE_BIT*SNUM+slaver.DSIZE) ];
+                // {master.data,shift_data}   <= {x_shift_data, slaver.data };
                 ex_out                   <= ex_in;
             end else begin    
                 {master.data,shift_data} <= {master.data,shift_data};

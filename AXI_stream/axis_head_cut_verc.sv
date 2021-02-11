@@ -40,6 +40,7 @@ axi_stream_inf #(.DSIZE(origin_inf.DSIZE),.USIZE(1)) sub_origin_inf [2:0] (.aclk
 axi_stream_inf #(.DSIZE(origin_inf.DSIZE),.USIZE(1)) origin_inf_ss (.aclk(origin_inf.aclk),.aresetn(origin_inf.aresetn),.aclken(1'b1)) ;
 axi_stream_inf #(.DSIZE(origin_inf.DSIZE),.USIZE(1)) origin_inf_cut_mix (.aclk(origin_inf.aclk),.aresetn(origin_inf.aresetn),.aclken(1'b1)) ;
 axi_stream_inf #(.DSIZE(origin_inf.DSIZE),.USIZE(1)) origin_inf_ss_E0 (.aclk(origin_inf.aclk),.aresetn(origin_inf.aresetn),.aclken(1'b1)) ;
+axi_stream_inf #(.DSIZE(origin_inf.DSIZE),.USIZE(1)) origin_inf_ss_E0_CH (.aclk(origin_inf.aclk),.aresetn(origin_inf.aresetn),.aclken(1'b1)) ;
 axi_stream_inf #(.DSIZE(out_inf.DSIZE),.USIZE(1)) out_inf_branchR587 (.aclk(out_inf.aclk),.aresetn(out_inf.aresetn),.aclken(1'b1)) ;
 //==========================================================================
 //-------- instance --------------------------------------------------------
@@ -107,9 +108,14 @@ axis_connect_pipe_right_shift_verb #(
     .SHIFT_BYTE_BIT (BYTE_BITS ),
     .SNUM           (DX        )
 )axis_connect_pipe_right_shift_verb_inst(
-/* input                 */.shift_sel (shift_sel          ),
-/* axi_stream_inf.slaver */.axis_in   (origin_inf_ss_E0   ),
-/* axi_stream_inf.master */.axis_out  (out_inf_branchR587 )
+/* input                 */.shift_sel (shift_sel           ),
+/* axi_stream_inf.slaver */.axis_in   (origin_inf_ss_E0    ),
+/* axi_stream_inf.master */.axis_out  (origin_inf_ss_E0_CH )
+);
+axis_head_cut_verb last_cut_inst(
+/* input                 */.length   (16'd1               ),
+/* axi_stream_inf.slaver */.axis_in  (origin_inf_ss_E0_CH ),
+/* axi_stream_inf.master */.axis_out (out_inf_branchR587  )
 );
 //==========================================================================
 //-------- expression ------------------------------------------------------

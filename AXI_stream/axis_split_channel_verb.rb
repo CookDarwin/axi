@@ -25,7 +25,7 @@ TdlBuild.axis_split_channel_verb(__dir__) do
         h.param.DSIZE   16 
         h.input.clock                       clock
         h.input.rst_n                       rst_n
-        h.input['DSIZE'].wdata              insert_seed
+        h.input['DSIZE'].wdata              split_len
         h.input.wr_en                       "#{(origin_inf.axis_tcnt == 0.A )} && #{origin_inf.vld_rdy }".to_nq
         h.output.logic['DSIZE'].rdata       logic[16].next_split_len
         h.input.rd_en                       origin_inf_insert.vld_rdy_last
